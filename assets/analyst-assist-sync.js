@@ -11,6 +11,11 @@
   let channel = null;
   let saveTimer = null;
   let applyingRemote = false;
+  const deviceId = (()=>{
+    let id = localStorage.getItem('aa_device_id');
+    if(!id){ id = (crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()) + '-' + Math.random().toString(16).slice(2); localStorage.setItem('aa_device_id', id); }
+    return id;
+  })();
 
   function el(id){ return document.getElementById(id); }
   function status(msg, ok=true){
@@ -43,6 +48,23 @@
     if(typeof loadSidelineLayoutOrder === 'function') loadSidelineLayoutOrder();
     if(typeof applyCardMinimizeState === 'function') applyCardMinimizeState();
   }
+
+  function captureLiveControls(){
+    const ids = ['g-qtr','g-down','g-dist','g-zone','g-score','g-pers','g-form','g-str','g-hash','g-tempo','g-star','g-phase'];
+    const out = {};
+    ids.forEach(id=>{ const node = el(id); if(node) out[id] = node.value; });
+    out.captured_at = new Date().toISOString();
+    return out;
+  }
+  function applyLiveControls(live){
+    if(!live || typeof live !== 'object') return;
+    Object.entries(live).forEach(([id,value])=>{
+      if(id === 'captured_at') return;
+      const node = el(id);
+      if(node && value != null) node.value = value;
+    });
+    if(typeof syncSideline === 'function') syncSideline();
+  }
   function applyPayload(payload){
     if(!payload || typeof ST === 'undefined') return;
     applyingRemote = true;
@@ -51,8 +73,11 @@
     ST.star = { ...(ST.star||{}), ...((next && next.star)||{}) };
     ST.defense = { ...(ST.defense||{}), ...((next && next.defense)||{}) };
     localStorage.setItem('dpp_v4', JSON.stringify(ST));
+    applyLiveControls(payload.live || payload.situation || {});
     applyLayout(payload.layout || {});
     if(typeof renderAll === 'function') renderAll();
+    if(typeof runPredict === 'function') runPredict();
+    if(typeof renderLiveLog === 'function') renderLiveLog();
     applyingRemote = false;
   }
   async function getSession(){ const {data} = await client.auth.getSession(); return data.session; }
@@ -80,7 +105,13 @@
   }
   async function saveCloudNow(){
     if(!client || !session || !team || !game || applyingRemote || typeof ST === 'undefined') return;
-    const payload = { state: ST, layout: getLocalLayout(), saved_at: new Date().toISOString() };
+    const payload = {
+      state: ST,
+      live: captureLiveControls(),
+      layout: getLocalLayout(),
+      saved_at: new Date().toISOString(),
+      device_id: deviceId
+    };
     const row = { team_id: team.id, game_id: game.id, payload, updated_by: session.user.id, updated_at: new Date().toISOString() };
     const {error} = await client.from('analyst_assist_state').upsert(row, {onConflict:'team_id,game_id'});
     if(error){ status('Cloud sync issue: '+error.message, false); return; }
@@ -104,14 +135,25 @@
       window[name] = function(){ const out = fn.apply(this, arguments); queueSave(); return out; };
       try { globalThis[name] = window[name]; } catch(e) {}
     });
+    const rp = window.runPredict || (typeof globalThis.runPredict === 'function' ? globalThis.runPredict : null);
+    if(rp && !rp.__aaCloudPatched){
+      const wrappedRunPredict = function(){
+        const out = rp.apply(this, arguments);
+        queueSave();
+        return out;
+      };
+      wrappedRunPredict.__aaCloudPatched = true;
+      window.runPredict = wrappedRunPredict;
+      try { globalThis.runPredict = wrappedRunPredict; runPredict = wrappedRunPredict; } catch(e) {}
+    }
   }
   function subscribe(){
     if(channel) client.removeChannel(channel);
     channel = client.channel('analyst-assist-state-' + game.id)
       .on('postgres_changes', {event:'*', schema:'public', table:'analyst_assist_state', filter:'game_id=eq.'+game.id}, payload=>{
-        const updatedBy = payload.new && payload.new.updated_by;
-        if(updatedBy && session && updatedBy === session.user.id) return;
-        if(payload.new && payload.new.payload) applyPayload(payload.new.payload);
+        const incoming = payload.new && payload.new.payload;
+        if(incoming && incoming.device_id && incoming.device_id === deviceId) return;
+        if(incoming) applyPayload(incoming);
       })
       .subscribe(state=>{ if(state === 'SUBSCRIBED') status('Supabase sync on'); });
   }
