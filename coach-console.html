@@ -172,7 +172,6 @@ textarea { min-height: 120px; font: 12px var(--mono); resize: vertical; }
 .pill-run { color: var(--green); border-color: rgba(52,211,153,.4); background: rgba(52,211,153,.07); }
 .pill-pass { color: var(--blue); border-color: rgba(96,165,250,.4); background: rgba(0,87,184,.08); }
 .pill-rpo { color: var(--gold); border-color: rgba(245,197,66,.4); background: rgba(245,197,66,.07); }
-.pill-screen { color: var(--purple); border-color: rgba(168,85,247,.45); background: rgba(168,85,247,.08); }
 .tag {
   display: inline-flex; align-items: center;
   border: 1px solid var(--line); border-radius: 999px;
@@ -209,7 +208,6 @@ textarea { min-height: 120px; font: 12px var(--mono); resize: vertical; }
 .split-run { background: var(--green); }
 .split-rpo { background: var(--gold); }
 .split-pass { background: var(--royal); }
-.split-screen { background: var(--purple); }
 
 /* ── SEC PRED ── */
 .sec-pred {
@@ -300,28 +298,6 @@ tr:hover td { background: rgba(16,31,59,.6); }
   border-color: var(--gold); color: var(--text);
   background: linear-gradient(135deg, rgba(0,87,184,.4), rgba(245,197,66,.12));
 }
-.layout-toolbar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:space-between; margin-bottom:12px; }
-.layout-grid { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:14px; align-items:start; }
-.sideline-layout-grid { display:grid; grid-template-columns:1fr; gap:12px; align-items:start; }
-.layout-item { min-width:0; }
-.layout-editing .layout-item, .sideline-layout-editing .sideline-layout-item { outline:2px dashed rgba(245,197,66,.55); border-radius:18px; padding:6px; cursor:grab; background:rgba(245,197,66,.04); }
-.layout-item.dragging, .sideline-layout-item.dragging { opacity:.55; }
-.layout-handle { display:none; font:800 10px var(--mono); color:var(--gold); margin:0 0 6px; letter-spacing:.08em; text-transform:uppercase; }
-.layout-editing .layout-handle, .sideline-layout-editing .layout-handle { display:block; }
-.card-tools { display:flex; justify-content:flex-end; align-items:center; gap:8px; margin-bottom:6px; }
-.card-min-btn { border:1px solid var(--line); border-radius:999px; padding:5px 9px; background:rgba(255,255,255,.04); color:var(--muted); font:800 10px var(--mono); cursor:pointer; letter-spacing:.06em; text-transform:uppercase; }
-.card-min-btn:hover { border-color:var(--gold); color:var(--gold); }
-.layout-item.is-minimized > :not(.card-tools):not(.layout-handle), .sideline-layout-item.is-minimized > :not(.card-tools):not(.layout-handle) { display:none !important; }
-.layout-item.is-minimized, .sideline-layout-item.is-minimized { border:1px dashed rgba(245,197,66,.35); border-radius:16px; padding:8px; background:rgba(245,197,66,.035); }
-.sideline-split-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:12px; }
-.split-tile { border:1px solid var(--line); border-radius:18px; padding:14px; background:linear-gradient(180deg,#12264a,#0a1426); text-align:center; }
-.split-tile strong { display:block; font:900 clamp(28px,7vw,56px) var(--mono); color:var(--gold); line-height:1; }
-.split-tile span { display:block; margin-top:6px; color:var(--muted); font:800 11px var(--mono); letter-spacing:.08em; text-transform:uppercase; }
-.accountability-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
-.accountability-btn { min-height:86px; border-radius:18px; border:1px solid var(--line); cursor:pointer; color:var(--text); background:linear-gradient(180deg,#102b4d,#07101e); font:900 18px var(--mono); }
-.accountability-btn:hover { border-color:var(--gold); transform:translateY(-1px); }
-.sideline-mode #postPlayCard, .sideline-mode #liveLogCard { display:none !important; }
-@media(max-width:900px){ .layout-grid,.sideline-split-grid,.accountability-grid{grid-template-columns:1fr 1fr;} }
 
 /* ── SYNC BADGE ── */
 .sync-badge {
@@ -411,6 +387,10 @@ input[type=file] { background: transparent; border: none; padding: 0; }
 .map-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
 @media(max-width:700px){ .map-grid{ grid-template-columns:1fr 1fr; } }
 @media(max-width:420px){ .map-grid{ grid-template-columns:1fr; } }
+
+.nav-mark img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; display:block; }
+.team-logo-preview { width: 54px; height: 54px; border-radius: 14px; border:1px solid var(--line); background:#07101e; display:flex; align-items:center; justify-content:center; overflow:hidden; color:var(--muted); font:800 10px var(--mono); }
+.team-logo-preview img { width:100%; height:100%; object-fit:cover; }
 </style>
 </head>
 <body>
@@ -419,7 +399,7 @@ input[type=file] { background: transparent; border: none; padding: 0; }
 <nav class="nav" id="mainNav">
   <div class="nav-brand">
     <div class="nav-mark" id="navMark">E</div>
-    <div class="nav-title"><b id="navTeam">EASTSIDE</b> DEF//PREDICT</div>
+    <div class="nav-title"><b id="navTeam">EASTSIDE</b> ANALYST ASSIST</div>
   </div>
   <div class="nav-links">
     <button class="nav-link active" onclick="showPage('dashboard',this)">Dashboard</button>
@@ -427,10 +407,9 @@ input[type=file] { background: transparent; border: none; padding: 0; }
     <button class="nav-link" onclick="showPage('game',this)">Game Mode</button>
     <button class="nav-link" onclick="showPage('setup',this)">Setup</button>
     <button class="nav-link" onclick="showPage('reports',this)">Reports</button>
-    <a class="nav-link" href="how-it-works.html">How It Works</a>
   </div>
   <div class="nav-right">
-    <a class="nav-link" href="dashboard.html" style="border-color:rgba(245,197,66,.25)">Home</a><button class="nav-link" onclick="signOut()" style="background:transparent">Sign out</button>
+    <a class="nav-link" href="staff-access.html" style="border-color:rgba(245,197,66,.25)">Staff Access</a><a class="nav-link" href="dashboard.html" style="border-color:rgba(245,197,66,.25)">Home</a><button class="nav-link" onclick="signOut()" style="background:transparent">Sign out</button>
     <div class="nav-opp" id="navOpp">vs Opponent</div>
     <div class="sync-badge"><span class="sync-dot"></span>LIVE</div>
   </div>
@@ -444,7 +423,7 @@ input[type=file] { background: transparent; border: none; padding: 0; }
     <div class="page-header-row">
       <div>
         <h1><span id="dashTeamName">Eastside Eagles</span> — Analyst Assist</h1>
-        <p>Real-time offensive tendency engine. Import film, run the game, read the call before the snap.</p>
+        <p>Live football tendency and situational analysis for the box, sideline, and staff.</p>
       </div>
       <div class="row">
         <button class="btn btn-primary" onclick="loadDemo()">Load demo game</button>
@@ -733,128 +712,76 @@ input[type=file] { background: transparent; border: none; padding: 0; }
       </div>
     </div>
 
-    <!-- Customizable Game Mode layout -->
-    <div id="gameLayoutGrid" class="layout-grid">
-      <div class="layout-item" draggable="false" data-card="predOut"><div class="layout-handle">Drag · Prediction + Split</div><div id="predOut"></div></div>
-      <div class="layout-item" draggable="false" data-card="alertsOut"><div class="layout-handle">Drag · Alerts</div><div id="alertsOut"></div></div>
-      <div class="layout-item" draggable="false" data-card="defenseOut"><div class="layout-handle">Drag · Defensive Answer</div><div id="defenseOut"></div></div>
-      <div class="layout-item" draggable="false" data-card="coachOut"><div class="layout-handle">Drag · Coach Card</div><div id="coachOut"></div></div>
-      <div class="layout-item" draggable="false" data-card="explainOut"><div class="layout-handle">Drag · Why</div><div id="explainOut"></div></div>
-      <div class="layout-item" draggable="false" data-card="starLiveOut"><div class="layout-handle">Drag · Star Alert</div><div id="starLiveOut"></div></div>
-      <div class="layout-item" draggable="false" data-card="lastFiveOut"><div class="layout-handle">Drag · Speed Board</div><div id="lastFiveOut"></div></div>
-      <div class="layout-item" draggable="false" data-card="postPlayCard"><div class="layout-handle">Drag · Post-play Log</div><div id="postPlaySlot"></div></div>
-      <div class="layout-item" draggable="false" data-card="liveLogCard"><div class="layout-handle">Drag · Live Play Log</div><div id="liveLogSlot"></div></div>
-    </div>
+    <!-- Predictions output -->
+    <div id="predOut"></div>
 
-    <!-- Customizable Game Mode layout -->
-    <div class="card" id="layoutControlsCard">
-      <div class="layout-toolbar">
-        <div>
-          <div class="card-title" style="margin-bottom:4px">Customize Game Mode Layout</div>
-          <div class="small">Click Edit Layout, then drag the table/cards into the order that fits your booth or sideline workflow.</div>
-        </div>
-        <div class="row">
-          <button class="btn btn-sm" id="layoutEditBtn" onclick="toggleLayoutEdit()">Edit Layout</button>
-          <button class="btn btn-sm" onclick="applyLayoutPreset('box')">Box preset</button>
-          <button class="btn btn-sm" onclick="applyLayoutPreset('sideline')">Sideline preset</button>
-          <button class="btn btn-sm" onclick="applyLayoutPreset('dc')">DC preset</button>
-          <button class="btn btn-sm btn-primary" onclick="saveLayoutOrder()">Save Layout</button>
-        </div>
-      </div>
+    <!-- Modular 2-col panels -->
+    <div class="g2">
+      <div id="alertsOut"></div>
+      <div id="explainOut"></div>
+    </div>
+    <div class="g2">
+      <div id="defenseOut"></div>
+      <div id="coachOut"></div>
+    </div>
+    <div class="g2">
+      <div id="starLiveOut"></div>
+      <div id="lastFiveOut"></div>
     </div>
   </div>
 
   <!-- Sideline panel (visible when mode = sideline) -->
   <div id="sidelinePanel" style="display:none">
-    <div id="sidelineLayoutGrid" class="sideline-layout-grid">
-      <div class="sideline-layout-item" draggable="false" data-card="sTendencyCard">
-        <div class="layout-handle">Drag · Play Type % / Tap to Log</div>
-        <div class="card" id="sTendencyCard">
-          <div class="card-title">Sideline tendency board — tap a percentage to log what happened</div>
-          <div class="sideline-split-grid">
-            <button class="split-tile" onclick="sidelineAccountability('Run')"><strong id="s-run-pct">—%</strong><span>Run</span><span class="tap-note">Tap to log RUN</span></button>
-            <button class="split-tile" onclick="sidelineAccountability('Pass')"><strong id="s-pass-pct">—%</strong><span>Pass</span><span class="tap-note">Tap to log PASS</span></button>
-            <button class="split-tile" onclick="sidelineAccountability('RPO')"><strong id="s-rpo-pct">—%</strong><span>RPO</span><span class="tap-note">Tap to log RPO</span></button>
-            <button class="split-tile" onclick="sidelineAccountability('Screen')"><strong id="s-screen-pct">—%</strong><span>Screen</span><span class="tap-note">Tap to log SCREEN</span></button>
-          </div>
-          <div class="row" style="margin-top:10px;justify-content:space-between">
-            <button class="btn btn-sm" onclick="undoLast()">Undo last</button>
-            <span class="small" id="s-last-play">Last play: —</span>
-          </div>
-          <div class="note" id="s-split-note" style="margin-top:10px">Use this as the quick-and-dirty call tendency. Box sync updates it live; sideline can also tap down/distance manually.</div>
+    <div class="pred-hero" id="s-pred-hero">
+      <div class="pred-label">SIDELINE CALL BOARD · <span id="s-conf"></span></div>
+      <div class="pred-name" id="s-pred-name">—</div>
+      <div class="row" style="gap:10px;margin-bottom:10px">
+        <div class="pred-pct" id="s-pred-pct">—%</div>
+        <span class="pill" id="s-pred-type"></span>
+        <span class="system-badge" id="s-system"></span>
+      </div>
+      <div class="bar" style="margin-bottom:10px"><div class="bar-fill" id="s-bar" style="width:0%"></div></div>
+      <div class="tag-row" id="s-tags"></div>
+      <div class="note" style="margin-top:10px" id="s-narrative"></div>
+    </div>
+
+    <!-- Down / Distance sync buttons -->
+    <div class="g2" style="margin-top:12px">
+      <div class="card">
+        <div class="card-title">Down — tap to update</div>
+        <div class="sideline-dn-row" id="s-dn-btns">
+          <button class="dn-btn active" data-dn="1" onclick="setDown(1)">1st</button>
+          <button class="dn-btn" data-dn="2" onclick="setDown(2)">2nd</button>
+          <button class="dn-btn" data-dn="3" onclick="setDown(3)">3rd</button>
+          <button class="dn-btn" data-dn="4" onclick="setDown(4)">4th</button>
         </div>
       </div>
-
-      <div class="sideline-layout-item" draggable="false" data-card="sSituationCard">
-        <div class="layout-handle">Drag · Down / Distance</div>
-        <div class="g2">
-          <div class="card">
-            <div class="card-title">Down — tap to update</div>
-            <div class="sideline-dn-row" id="s-dn-btns">
-              <button class="dn-btn active" data-dn="1" onclick="setDown(1)">1st</button>
-              <button class="dn-btn" data-dn="2" onclick="setDown(2)">2nd</button>
-              <button class="dn-btn" data-dn="3" onclick="setDown(3)">3rd</button>
-              <button class="dn-btn" data-dn="4" onclick="setDown(4)">4th</button>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-title">Distance — tap to update</div>
-            <div class="sideline-dist-row" id="s-dist-btns">
-              <button class="dist-btn" data-dist="short" onclick="setDist('short')">1-3</button>
-              <button class="dist-btn" data-dist="normal" onclick="setDist('normal')">4-6</button>
-              <button class="dist-btn active" data-dist="long" onclick="setDist('long')">7-10</button>
-              <button class="dist-btn" data-dist="xlong" onclick="setDist('xlong')">11+</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="sideline-layout-item sideline-noise" draggable="false" data-card="sPredictionCard">
-        <div class="layout-handle">Drag · Full Prediction</div>
-        <div class="pred-hero" id="s-pred-hero">
-          <div class="pred-label">SIDELINE CALL BOARD · <span id="s-conf"></span></div>
-          <div class="pred-name" id="s-pred-name">—</div>
-          <div class="row" style="gap:10px;margin-bottom:10px">
-            <div class="pred-pct" id="s-pred-pct">—%</div>
-            <span class="pill" id="s-pred-type"></span>
-            <span class="system-badge" id="s-system"></span>
-          </div>
-          <div class="bar" style="margin-bottom:10px"><div class="bar-fill" id="s-bar" style="width:0%"></div></div>
-          <div class="tag-row" id="s-tags"></div>
-          <div class="note" style="margin-top:10px" id="s-narrative"></div>
-        </div>
-      </div>
-
-      <div class="sideline-layout-item sideline-noise" draggable="false" data-card="sAlertsDefenseCard">
-        <div class="layout-handle">Drag · Alerts / Defense</div>
-        <div class="g2">
-          <div id="s-alerts-out"></div>
-          <div id="s-defense-out"></div>
+      <div class="card">
+        <div class="card-title">Distance — tap to update</div>
+        <div class="sideline-dist-row" id="s-dist-btns">
+          <button class="dist-btn" data-dist="short" onclick="setDist('short')">1-3</button>
+          <button class="dist-btn" data-dist="normal" onclick="setDist('normal')">4-6</button>
+          <button class="dist-btn active" data-dist="long" onclick="setDist('long')">7-10</button>
+          <button class="dist-btn" data-dist="xlong" onclick="setDist('xlong')">11+</button>
         </div>
       </div>
     </div>
 
-    <div class="card" id="sidelineLayoutControlsCard">
-      <div class="layout-toolbar">
-        <div>
-          <div class="card-title" style="margin-bottom:4px">Customize Sideline Layout</div>
-          <div class="small">Click Edit Sideline Layout, then drag the sideline boxes into your preferred order. Use Hide Noise to keep only the essentials.</div>
-        </div>
-        <div class="row">
-          <button class="btn btn-sm" id="sidelineLayoutEditBtn" onclick="toggleSidelineLayoutEdit()">Edit Sideline Layout</button>
-          <button class="btn btn-sm" onclick="applySidelineLayoutPreset('clean')">Clean preset</button>
-          <button class="btn btn-sm" onclick="applySidelineLayoutPreset('chart')">Charting preset</button>
-          <button class="btn btn-sm" onclick="toggleSidelineNoise()">Hide / Show Noise</button>
-          <button class="btn btn-sm btn-primary" onclick="saveSidelineLayoutOrder()">Save Sideline</button>
-        </div>
-      </div>
+    <!-- Quick log buttons -->
+    <div class="card" style="margin-top:12px">
+      <div class="card-title">Quick log — tap to log this call</div>
+      <div class="sideline-big-btns" id="s-quick-btns"></div>
     </div>
 
-    <div class="small" id="s-sync-status" style="margin-top:8px">Manual sideline mode unless Supabase realtime is connected.</div>
+    <!-- Sideline alerts & defense -->
+    <div class="g2" style="margin-top:12px">
+      <div id="s-alerts-out"></div>
+      <div id="s-defense-out"></div>
+    </div>
   </div>
 
   <!-- Post-play log -->
-  <div class="card" id="postPlayCard" style="margin-top:14px">
+  <div class="card" style="margin-top:14px">
     <div class="card-title">Post-play: log result</div>
     <div class="g5">
       <div><label>Actual Concept</label><select id="g-actual"></select></div>
@@ -876,7 +803,7 @@ input[type=file] { background: transparent; border: none; padding: 0; }
   </div>
 
   <!-- Live log -->
-  <div class="card" id="liveLogCard">
+  <div class="card">
     <div class="row" style="justify-content:space-between;margin-bottom:12px">
       <div class="card-title" style="margin:0">Live Play Log (<span id="liveCount">0</span> plays)</div>
       <button class="btn btn-sm" onclick="downloadCsv('live')">Download CSV</button>
@@ -966,7 +893,7 @@ input[type=file] { background: transparent; border: none; padding: 0; }
     <div class="g4">
       <div><label>Concept name</label><input type="text" id="s-new-concept" placeholder="e.g. Buck Sweep"></div>
       <div><label>Type</label>
-        <select id="s-new-type"><option>Run</option><option>Pass</option><option>RPO</option><option>Screen</option></select></div>
+        <select id="s-new-type"><option>Run</option><option>Pass</option><option>RPO</option></select></div>
       <div><label>Activate now?</label>
         <select id="s-new-active"><option value="yes">Yes</option><option value="no">No</option></select></div>
       <div style="display:flex;align-items:flex-end">
@@ -991,12 +918,28 @@ input[type=file] { background: transparent; border: none; padding: 0; }
 
   <!-- Team branding -->
   <div class="card">
-    <div class="card-title">Team Branding</div>
+    <div class="card-title">Team Branding & Staff Access</div>
+    <p class="small" style="margin-bottom:12px">Customize Analyst Assist for your team. These settings sync through Supabase so every staff device sees the same identity.</p>
     <div class="g4">
       <div><label>Team name</label><input type="text" id="s-team-name" placeholder="Eastside Eagles" oninput="saveSetup();applyBranding()"></div>
       <div><label>Primary color</label><input type="color" id="s-primary" value="#0057b8" onchange="saveSetup();applyBranding()"></div>
       <div><label>Secondary color</label><input type="color" id="s-secondary" value="#f5c542" onchange="saveSetup();applyBranding()"></div>
       <div><label>Accent color</label><input type="color" id="s-accent" value="#ffffff" onchange="saveSetup();applyBranding()"></div>
+    </div>
+    <div class="g3" style="margin-top:12px;align-items:end">
+      <div>
+        <label>Team logo</label>
+        <input type="file" id="s-team-logo" accept="image/*" onchange="handleTeamLogoUpload(event)">
+        <p class="small">Use a small PNG/JPG. Square logos look best.</p>
+      </div>
+      <div>
+        <label>Logo preview</label>
+        <div class="team-logo-preview" id="teamLogoPreview">LOGO</div>
+      </div>
+      <div class="row">
+        <button class="btn btn-sm" onclick="clearTeamLogo()">Remove logo</button>
+        <a class="btn btn-sm btn-primary" href="staff-access.html">Open Staff Access</a>
+      </div>
     </div>
   </div>
 
@@ -1079,7 +1022,7 @@ let CONCEPTS = [...DEFAULT_CONCEPTS];
 
 let ST = {
   opp: 'Opponent', week: '', teamName: 'Eastside Eagles',
-  primary: '#0057b8', secondary: '#f5c542', accent: '#ffffff',
+  primary: '#0057b8', secondary: '#f5c542', accent: '#ffffff', logo: '',
   weight: 'auto', groupForms: true,
   active: [...DEFAULT_ACTIVE],
   customConcepts: [], deletedConcepts: [],
@@ -1102,7 +1045,7 @@ function pct(n,d){ return d ? Math.round(n/d*100) : 0; }
 function countBy(arr, key){ let o={}; arr.forEach(p=>{ let k=typeof key==='function'?key(p):p[key]; if(k!=null)o[k]=(o[k]||0)+1; }); return o; }
 function topEntry(o){ return Object.entries(o).sort((a,b)=>b[1]-a[1])[0]; }
 
-function typeOf(c){ if(c==='Screen')return 'Screen'; let found=CONCEPTS.find(x=>x[0]===c); return found?.[1] || 'Run'; }
+function typeOf(c){ return CONCEPTS.find(x=>x[0]===c)?.[1] || 'Run'; }
 
 function nDown(x){ x=parseInt(x); return ['1','2','3','4'].includes(String(x))?String(x):'1'; }
 function nDist(x=''){ let n=parseFloat(x),s=String(x).toLowerCase();
@@ -1230,12 +1173,30 @@ function renderPage(id){
 }
 
 // ─── BRANDING ────────────────────────────────────────────────
+function renderTeamLogoPreview(){
+  let p=$('teamLogoPreview'); if(!p)return;
+  p.innerHTML = ST.logo ? `<img src="${ST.logo}" alt="Team logo">` : 'LOGO';
+}
+function handleTeamLogoUpload(event){
+  let file=event.target.files && event.target.files[0];
+  if(!file)return;
+  if(file.size > 900000){ alert('Logo is too large. Please use an image under 900 KB.'); event.target.value=''; return; }
+  let reader=new FileReader();
+  reader.onload=()=>{ ST.logo=reader.result; silentSave(); renderTeamLogoPreview(); applyBranding(); toast('Team logo saved'); };
+  reader.readAsDataURL(file);
+}
+function clearTeamLogo(){
+  ST.logo='';
+  if($('s-team-logo'))$('s-team-logo').value='';
+  silentSave(); renderTeamLogoPreview(); applyBranding(); toast('Logo removed');
+}
 function applyBranding(){
   document.documentElement.style.setProperty('--royal', ST.primary || '#0057b8');
   document.documentElement.style.setProperty('--gold', ST.secondary || '#f5c542');
-  if($('navMark')) $('navMark').textContent = (ST.teamName||'E').trim()[0].toUpperCase();
+  if($('navMark')) $('navMark').innerHTML = ST.logo ? `<img src="${ST.logo}" alt="Team logo">` : esc((ST.teamName||'E').trim()[0].toUpperCase());
   if($('navTeam')) $('navTeam').textContent = (ST.teamName||'TEAM').split(' ')[0].toUpperCase();
   if($('dashTeamName')) $('dashTeamName').textContent = ST.teamName || 'Eastside Eagles';
+  renderTeamLogoPreview();
 }
 function updateNavHeader(){
   if($('navOpp')) $('navOpp').textContent = `vs ${ST.opp||'Opponent'} · ${ST.live.length}L/${ST.film.length}F`;
@@ -1362,14 +1323,14 @@ function confidence(preds){
 }
 
 function runPassSplit(preds){
-  let x={r:0,p:0,o:0,s:0};
-  preds.forEach(v=>{ if(v.type==='Run')x.r+=v.pct; else if(v.type==='Screen'||v.name==='Screen')x.s+=v.pct; else if(v.type==='Pass')x.p+=v.pct; else x.o+=v.pct; });
+  let x={r:0,p:0,o:0};
+  preds.forEach(v=>{ if(v.type==='Run')x.r+=v.pct; else if(v.type==='Pass')x.p+=v.pct; else x.o+=v.pct; });
   return x;
 }
 
 function splitFromData(arr){
-  let x={run:0,pass:0,rpo:0,screen:0};
-  arr.forEach(p=>{ let t=p.type||typeOf(p.concept); if(t==='Run')x.run++; else if(t==='Screen'||p.concept==='Screen')x.screen++; else if(t==='Pass')x.pass++; else x.rpo++; });
+  let x={run:0,pass:0,rpo:0};
+  arr.forEach(p=>{ let t=p.type||typeOf(p.concept); if(t==='Run')x.run++; else if(t==='Pass')x.pass++; else x.rpo++; });
   return x;
 }
 
@@ -1506,10 +1467,9 @@ function runPredict(){
       <div class="split-meter" style="margin-bottom:8px">
         <div class="split-run" style="width:${sp.r*100}%"></div>
         <div class="split-rpo" style="width:${sp.o*100}%"></div>
-        <div class="split-screen" style="width:${(sp.s||0)*100}%"></div>
         <div class="split-pass" style="width:${sp.p*100}%"></div>
       </div>
-      <p class="small">Run ${Math.round(sp.r*100)}% · Pass ${Math.round(sp.p*100)}% · RPO ${Math.round(sp.o*100)}% · Screen ${Math.round((sp.s||0)*100)}%</p>
+      <p class="small">Run ${Math.round(sp.r*100)}% · Pass ${Math.round(sp.p*100)}% · RPO/screen ${Math.round(sp.o*100)}%</p>
     </div>`;
 
   // Alerts
@@ -1593,12 +1553,11 @@ function updateSidelinePanel(preds, sp, conf, narrative, tags, rec){
   if($('s-system'))$('s-system').textContent = ST.defense.base;
   let pt = $('s-pred-type'); if(pt){ pt.textContent=p0.type; pt.className=`pill pill-${p0.type.toLowerCase()}`; }
 
-  if($('s-run-pct')) $('s-run-pct').textContent = Math.round(sp.r*100)+'%';
-  if($('s-pass-pct')) $('s-pass-pct').textContent = Math.round(sp.p*100)+'%';
-  if($('s-rpo-pct')) $('s-rpo-pct').textContent = Math.round(sp.o*100)+'%';
-  if($('s-screen-pct')) $('s-screen-pct').textContent = Math.round((sp.s||0)*100)+'%';
-  if($('s-split-note')) $('s-split-note').textContent = `${sp.r>.58?'Run lean':sp.p>.58?'Pass lean':(sp.s||0)>.18?'Screen alert':sp.o>.22?'RPO alert':'Balanced'} · ${ST.live.length} live plays, ${ST.film.length} film plays`;
-  if($('s-last-play')){ let lp=ST.live[ST.live.length-1]; $('s-last-play').textContent = lp ? `Last play: ${lp.actual||'—'}${lp.result?' · '+lp.result:''}` : 'Last play: —'; }
+  // Quick log buttons
+  if($('s-quick-btns')) $('s-quick-btns').innerHTML = preds.slice(0,6).map(p=>`
+    <button class="sideline-btn" onclick="quickLog(${JSON.stringify(p.name)})">
+      ${esc(p.name)}<span class="small">${Math.round(p.pct*100)}%</span>
+    </button>`).join('');
 
   if($('s-alerts-out')) $('s-alerts-out').innerHTML = `
     <div class="card"><div class="card-title">Alerts</div>
@@ -1612,13 +1571,6 @@ function updateSidelinePanel(preds, sp, conf, narrative, tags, rec){
       <div class="small" style="margin-bottom:6px"><b>Coverage:</b> ${esc(rec.cov)}</div>
       <div class="small"><b>Pressure:</b> ${esc(rec.pres)}</div>
     </div>`;
-}
-
-function sidelineAccountability(kind){
-  let map={Run:'Inside Zone',Pass:'Medium Pass',RPO:'RPO',Screen:'Screen'};
-  quickLog(map[kind]||kind);
-  if($('s-last-play')) $('s-last-play').textContent='Last play: '+kind+' logged';
-  toast('Logged accountability: '+kind);
 }
 
 function toggleMode(){
@@ -1953,6 +1905,7 @@ function renderSetup(){
   if($('s-primary'))$('s-primary').value=ST.primary||'#0057b8';
   if($('s-secondary'))$('s-secondary').value=ST.secondary||'#f5c542';
   if($('s-accent'))$('s-accent').value=ST.accent||'#ffffff';
+  renderTeamLogoPreview();
 
   renderConceptsPanel();
   renderStarConcepts();
@@ -2237,132 +2190,6 @@ function loadDemo(){
   silentSave();renderAll();toast('Demo game loaded — '+DEMO_DATA.length+' plays added');
 }
 
-// ─── CUSTOM GAME LAYOUT ───────────────────────────────────────
-let layoutEditing=false;
-const LAYOUT_KEY='dpp_game_layout_v2';
-const LAYOUT_PRESETS={
-  box:['predOut','postPlayCard','alertsOut','defenseOut','coachOut','liveLogCard','explainOut','starLiveOut','lastFiveOut'],
-  sideline:['predOut','postPlayCard','alertsOut','lastFiveOut','coachOut','defenseOut','starLiveOut','explainOut','liveLogCard'],
-  dc:['defenseOut','predOut','alertsOut','coachOut','postPlayCard','lastFiveOut','liveLogCard','explainOut','starLiveOut']
-};
-function layoutItems(){ return Array.from(document.querySelectorAll('#gameLayoutGrid .layout-item')); }
-function setLayoutOrder(order){
-  let grid=$('gameLayoutGrid'); if(!grid||!order)return;
-  order.forEach(id=>{ let el=grid.querySelector(`[data-card="${id}"]`); if(el)grid.appendChild(el); });
-}
-function saveLayoutOrder(){
-  let order=layoutItems().map(x=>x.dataset.card);
-  localStorage.setItem(LAYOUT_KEY, JSON.stringify(order));
-  applyCardMinimizeState();
-  toast('Game Mode layout saved');
-}
-function loadLayoutOrder(){
-  try{ setLayoutOrder(JSON.parse(localStorage.getItem(LAYOUT_KEY)||'null')); }catch(e){}
-}
-function applyLayoutPreset(name){ setLayoutOrder(LAYOUT_PRESETS[name]||LAYOUT_PRESETS.box); saveLayoutOrder(); }
-function toggleLayoutEdit(){
-  layoutEditing=!layoutEditing;
-  document.body.classList.toggle('layout-editing', layoutEditing);
-  if($('layoutEditBtn'))$('layoutEditBtn').textContent=layoutEditing?'Done Editing':'Edit Layout';
-  layoutItems().forEach(el=>el.draggable=layoutEditing);
-}
-function initLayoutDrag(){
-  let grid=$('gameLayoutGrid'); if(!grid)return;
-  grid.addEventListener('dragstart',e=>{let item=e.target.closest('.layout-item'); if(!layoutEditing||!item)return; item.classList.add('dragging'); e.dataTransfer.effectAllowed='move';});
-  grid.addEventListener('dragend',e=>{let item=e.target.closest('.layout-item'); if(item)item.classList.remove('dragging'); saveLayoutOrder();});
-  grid.addEventListener('dragover',e=>{
-    if(!layoutEditing)return; e.preventDefault();
-    let dragging=grid.querySelector('.dragging'); if(!dragging)return;
-    let after=layoutItems().filter(x=>x!==dragging).find(x=>e.clientY < x.getBoundingClientRect().top + x.offsetHeight/2);
-    if(after)grid.insertBefore(dragging, after); else grid.appendChild(dragging);
-  });
-}
-
-function mountBoxCardsIntoLayout(){
-  let post=$('postPlayCard'), postSlot=$('postPlaySlot'); if(post&&postSlot&&!postSlot.contains(post)) postSlot.appendChild(post);
-  let live=$('liveLogCard'), liveSlot=$('liveLogSlot'); if(live&&liveSlot&&!liveSlot.contains(live)) liveSlot.appendChild(live);
-}
-
-let sidelineLayoutEditing=false;
-let sidelineNoiseHidden=true;
-const SIDELINE_LAYOUT_KEY='dpp_sideline_layout_v3';
-const SIDELINE_NOISE_KEY='dpp_sideline_noise_hidden_v3';
-const SIDELINE_LAYOUT_PRESETS={
-  clean:['sTendencyCard','sSituationCard','sAlertsDefenseCard','sPredictionCard'],
-  chart:['sSituationCard','sTendencyCard','sAlertsDefenseCard','sPredictionCard']
-};
-
-const CARD_MIN_KEY='dpp_card_minimized_v1';
-function cardMinState(){ try{return JSON.parse(localStorage.getItem(CARD_MIN_KEY)||'{}')||{};}catch(e){return{};} }
-function saveCardMinState(state){ localStorage.setItem(CARD_MIN_KEY, JSON.stringify(state||{})); }
-function cardLabel(item){
-  let id=item?.dataset?.card||'Card';
-  return id.replace('Out','').replace('Card','').replace(/^s/,'Sideline ').replace(/([A-Z])/g,' $1').trim();
-}
-function toggleCardMinimized(cardId){
-  let item=document.querySelector(`.layout-item[data-card="${cardId}"], .sideline-layout-item[data-card="${cardId}"]`); if(!item)return;
-  let state=cardMinState(); state[cardId]=!state[cardId]; saveCardMinState(state); applyCardMinimizeState();
-}
-function applyCardMinimizeState(){
-  let state=cardMinState();
-  document.querySelectorAll('.layout-item,.sideline-layout-item').forEach(item=>{
-    let id=item.dataset.card;
-    let min=!!state[id];
-    item.classList.toggle('is-minimized', min);
-    let btn=item.querySelector('.card-min-btn');
-    if(btn)btn.textContent=min?`Show ${cardLabel(item)}`:'Minimize';
-  });
-}
-function initCardMinimizeControls(){
-  document.querySelectorAll('.layout-item,.sideline-layout-item').forEach(item=>{
-    if(item.querySelector('.card-tools'))return;
-    let id=item.dataset.card;
-    let bar=document.createElement('div');
-    bar.className='card-tools';
-    bar.innerHTML=`<button class="card-min-btn" type="button" onclick="toggleCardMinimized('${id}')">Minimize</button>`;
-    item.insertBefore(bar, item.firstChild);
-  });
-  applyCardMinimizeState();
-}
-function sidelineLayoutItems(){ return Array.from(document.querySelectorAll('#sidelineLayoutGrid .sideline-layout-item')); }
-function setSidelineLayoutOrder(order){
-  let grid=$('sidelineLayoutGrid'); if(!grid||!order)return;
-  order.forEach(id=>{ let el=grid.querySelector(`[data-card="${id}"]`); if(el)grid.appendChild(el); });
-}
-function saveSidelineLayoutOrder(){
-  localStorage.setItem(SIDELINE_LAYOUT_KEY, JSON.stringify(sidelineLayoutItems().map(x=>x.dataset.card)));
-  localStorage.setItem(SIDELINE_NOISE_KEY, sidelineNoiseHidden?'1':'0');
-  applyCardMinimizeState();
-  toast('Sideline layout saved');
-}
-function loadSidelineLayoutOrder(){
-  try{ setSidelineLayoutOrder(JSON.parse(localStorage.getItem(SIDELINE_LAYOUT_KEY)||'null')); }catch(e){}
-  sidelineNoiseHidden = localStorage.getItem(SIDELINE_NOISE_KEY) !== '0';
-  applySidelineNoiseState();
-}
-function applySidelineLayoutPreset(name){ setSidelineLayoutOrder(SIDELINE_LAYOUT_PRESETS[name]||SIDELINE_LAYOUT_PRESETS.clean); saveSidelineLayoutOrder(); }
-function toggleSidelineLayoutEdit(){
-  sidelineLayoutEditing=!sidelineLayoutEditing;
-  document.body.classList.toggle('sideline-layout-editing', sidelineLayoutEditing);
-  if($('sidelineLayoutEditBtn'))$('sidelineLayoutEditBtn').textContent=sidelineLayoutEditing?'Done Editing':'Edit Sideline Layout';
-  sidelineLayoutItems().forEach(el=>el.draggable=sidelineLayoutEditing);
-}
-function applySidelineNoiseState(){
-  document.querySelectorAll('.sideline-noise').forEach(el=>{ el.style.display = sidelineNoiseHidden ? 'none' : ''; });
-}
-function toggleSidelineNoise(){ sidelineNoiseHidden=!sidelineNoiseHidden; applySidelineNoiseState(); saveSidelineLayoutOrder(); }
-function initSidelineLayoutDrag(){
-  let grid=$('sidelineLayoutGrid'); if(!grid)return;
-  grid.addEventListener('dragstart',e=>{let item=e.target.closest('.sideline-layout-item'); if(!sidelineLayoutEditing||!item)return; item.classList.add('dragging'); e.dataTransfer.effectAllowed='move';});
-  grid.addEventListener('dragend',e=>{let item=e.target.closest('.sideline-layout-item'); if(item)item.classList.remove('dragging'); saveSidelineLayoutOrder();});
-  grid.addEventListener('dragover',e=>{
-    if(!sidelineLayoutEditing)return; e.preventDefault();
-    let dragging=grid.querySelector('.dragging'); if(!dragging)return;
-    let after=sidelineLayoutItems().filter(x=>x!==dragging).find(x=>e.clientY < x.getBoundingClientRect().top + x.offsetHeight/2);
-    if(after)grid.insertBefore(dragging, after); else grid.appendChild(dragging);
-  });
-}
-
 // ─── RENDER ALL ────────────────────────────────────────────────
 function renderAll(){
   populateAllSelects();
@@ -2381,13 +2208,6 @@ function renderAll(){
 // ─── INIT ────────────────────────────────────────────────────
 function init(){
   loadState();
-  mountBoxCardsIntoLayout();
-  initLayoutDrag();
-  initSidelineLayoutDrag();
-  initCardMinimizeControls();
-  loadLayoutOrder();
-  loadSidelineLayoutOrder();
-  applyCardMinimizeState();
   renderAll();
   // Populate prep page inputs from state
   if($('p-opp'))$('p-opp').value=ST.opp==='Opponent'?'':ST.opp;
