@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Analyst Assist — Staff Access</title>
+<style>
+:root{--bg:#07111f;--panel:#0b1626;--line:#1e3050;--text:#e5e7eb;--muted:#94a3b8;--gold:#f5c542;--green:#22c55e;--red:#fb7185;--royal:#0057b8;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,rgba(0,87,184,.35),transparent 30%),var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}.wrap{width:min(1080px,100%);display:grid;grid-template-columns:1fr 1fr;gap:18px}.card{background:rgba(11,22,38,.92);border:1px solid var(--line);border-radius:22px;padding:24px;box-shadow:0 18px 50px rgba(0,0,0,.28)}h1{margin:0 0 8px;font-size:34px;line-height:1.05}h2{margin:0 0 12px;font-size:18px}.kicker{font:800 12px ui-monospace,Menlo,monospace;color:var(--gold);letter-spacing:.08em;text-transform:uppercase}.muted{color:var(--muted);line-height:1.55}label{display:block;margin:12px 0 6px;color:var(--muted);font:800 11px ui-monospace,Menlo,monospace;text-transform:uppercase}input,textarea{width:100%;border:1px solid var(--line);background:#07101e;color:var(--text);border-radius:12px;padding:12px;font:inherit}textarea{min-height:150px}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.btn{border:1px solid var(--line);background:#101d31;color:var(--text);border-radius:12px;padding:11px 14px;font:800 12px ui-monospace,Menlo,monospace;cursor:pointer;text-decoration:none;display:inline-flex}.btn.primary{background:linear-gradient(135deg,var(--royal),#0e7490);border-color:rgba(245,197,66,.45)}.btn.gold{background:var(--gold);color:#111827}.status{margin-top:12px;color:var(--muted);font:800 12px ui-monospace,Menlo,monospace}.good{color:var(--green)}.bad{color:var(--red)}ul{padding-left:18px;line-height:1.6}.pill{display:inline-block;border:1px solid rgba(245,197,66,.35);color:var(--gold);border-radius:999px;padding:5px 9px;font:800 11px ui-monospace,Menlo,monospace;margin:4px 4px 0 0}@media(max-width:850px){.wrap{grid-template-columns:1fr}h1{font-size:28px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="card">
+    <div class="kicker">Shared staff access</div>
+    <h1>Analyst Assist</h1>
+    <p class="muted">For the simplest football workflow, create one shared staff login for the whole team. Anyone with the staff email and password can operate Box Mode, Sideline Mode, setup, reports, and branding.</p>
+    <div class="pill">No staff roles</div><div class="pill">Same permissions</div><div class="pill">Box + Sideline sync</div>
+    <h2 style="margin-top:22px">Sign in</h2>
+    <label>Staff email</label><input id="email" type="email" placeholder="footballstaff@school.org" autocomplete="email">
+    <label>Password</label><input id="password" type="password" placeholder="Shared staff password" autocomplete="current-password">
+    <div class="row" style="margin-top:14px">
+      <button class="btn primary" onclick="signIn()">Sign in</button>
+      <button class="btn" onclick="signUp()">Create shared staff login</button>
+      <button class="btn" onclick="resetPassword()">Reset password</button>
+      <button class="btn" onclick="aaAuthBypass()">Continue without login</button>
+    </div>
+    <div class="status" id="status">Waiting for staff login… If setup is not finished, use Continue without login for testing.</div>
+    <p class="muted" style="font-size:13px;margin-top:18px">Tip: use one team-controlled email account, not a personal coach email. Example: <b>footballstaff@yourschool.org</b>.</p>
+  </section>
+
+  <section class="card">
+    <div class="kicker">Send to your staff</div>
+    <h2>Copy staff access message</h2>
+    <p class="muted">Supabase cannot send invite emails from a plain static site without a server-side service role. This gives you the simple version: copy this message and send it from your own email/text thread.</p>
+    <label>Staff invite message</label>
+    <textarea id="inviteText">Coaches — we are using Analyst Assist for live tendency tracking and sideline/box communication.
+
+Login page:
+[PASTE SITE URL]/staff-access.html
+
+Use the shared staff login:
+Email: [TEAM STAFF EMAIL]
+Password: [SHARED PASSWORD]
+
+Everyone has the same access. If you are in the box, on the sideline, or helping with reports, you can update anything the staff needs.</textarea>
+    <div class="row" style="margin-top:12px">
+      <button class="btn gold" onclick="copyInvite()">Copy message</button>
+      <a class="btn" href="coach-console.html">Open Coach Console</a>
+    </div>
+    <h2 style="margin-top:22px">Recommended setup</h2>
+    <ul class="muted">
+      <li>Create one shared staff login per team.</li>
+      <li>Give the password only to trusted staff.</li>
+      <li>Change the password when a coach leaves the staff.</li>
+      <li>Use Setup → Team Branding to set colors and logo.</li>
+    </ul>
+  </section>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/config.js"></script>
+<script src="assets/supabase-app.js"></script>
+<script>
+const statusEl=document.getElementById('status');
+function setStatus(msg,good){statusEl.textContent=msg;statusEl.className='status '+(good?'good':'bad');}
+function creds(){return {email:document.getElementById('email').value.trim(), password:document.getElementById('password').value};}
+async function signIn(){
+  if(!window.aaSupabase)return setStatus('Supabase config missing. Check assets/config.js.',false);
+  const {email,password}=creds(); if(!email||!password)return setStatus('Enter staff email and password.',false);
+  const {error}=await aaSupabase.auth.signInWithPassword({email,password});
+  if(error)return setStatus(error.message,false);
+  setStatus('Signed in. Opening Coach Console…',true); setTimeout(()=>location.href='coach-console.html',500);
+}
+async function signUp(){
+  if(!window.aaSupabase)return setStatus('Supabase config missing. Check assets/config.js.',false);
+  const {email,password}=creds(); if(!email||!password)return setStatus('Enter staff email and password.',false);
+  const {error}=await aaSupabase.auth.signUp({email,password});
+  if(error)return setStatus(error.message,false);
+  setStatus('Shared staff login created. If email confirmation is on, confirm it before signing in.',true);
+}
+async function resetPassword(){
+  if(!window.aaSupabase)return setStatus('Supabase config missing. Check assets/config.js.',false);
+  const email=document.getElementById('email').value.trim(); if(!email)return setStatus('Enter the staff email first.',false);
+  const {error}=await aaSupabase.auth.resetPasswordForEmail(email,{redirectTo:location.origin + location.pathname});
+  if(error)return setStatus(error.message,false);
+  setStatus('Password reset email sent if that account exists.',true);
+}
+async function copyInvite(){
+  let text=document.getElementById('inviteText').value.replace('[PASTE SITE URL]', location.origin);
+  await navigator.clipboard.writeText(text); setStatus('Invite message copied.',true);
+}
+(async()=>{ if(window.aaSupabase){ const {data}=await aaSupabase.auth.getSession(); if(data.session)setStatus('Already signed in. You can open Coach Console.',true); }})();
+</script>
+</body>
+</html>
