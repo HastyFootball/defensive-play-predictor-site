@@ -4,7 +4,7 @@
 (function(){
   const cfg = window.DPP_CONFIG || {};
   const enabled = !!(window.supabase && cfg.SUPABASE_URL && cfg.SUPABASE_ANON_KEY && !cfg.SUPABASE_URL.includes('PASTE_'));
-  const client = enabled ? window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY) : null;
+  const client = enabled ? (window.aaSupabase || window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY)) : null;
   let session = null;
   let team = null;
   let game = null;
@@ -84,11 +84,15 @@
   async function pickTeam(){
     const params = new URLSearchParams(location.search);
     const teamId = params.get('team');
-    let query = client.from('teams').select('*').order('created_at',{ascending:false});
-    if(teamId) query = client.from('teams').select('*').eq('id', teamId).limit(1);
-    const {data, error} = await query.limit ? await query.limit(1) : await query;
+    let q = client.from('teams').select('*').order('created_at',{ascending:false}).limit(1);
+    if(teamId) q = client.from('teams').select('*').eq('id', teamId).limit(1);
+    let {data, error} = await q;
     if(error) throw error;
-    return data && data[0];
+    if(data && data[0]) return data[0];
+    const teamName = (typeof ST !== 'undefined' && ST.teamName) ? ST.teamName : 'Analyst Assist Team';
+    const inserted = await client.from('teams').insert({name:teamName, owner_id:session.user.id}).select('*').single();
+    if(inserted.error) throw inserted.error;
+    return inserted.data;
   }
   async function ensureGame(){
     let {data, error} = await client.from('live_games').select('*').eq('team_id', team.id).eq('status','active').order('created_at',{ascending:false}).limit(1);
