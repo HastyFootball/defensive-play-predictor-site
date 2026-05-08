@@ -1,0 +1,19 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Coach Home | Analyst Assist</title><link rel="stylesheet" href="assets/styles.css"></head><body><script src="assets/nav.js"></script>
+<main class="dashboard"><div class="wrap">
+  <div class="dash-top">
+    <div><div class="status">Coach portal</div><h1 style="margin:10px 0 6px">Home base</h1><p class="muted">Logged in as <span id="coachEmail"></span>. One clean workflow: prepare the opponent, use Game Mode, review the report.</p></div>
+    <div class="actions" style="margin-top:0"><a class="btn primary" href="coach-console.html">Open Coach Console</a><a class="btn" href="coach-console.html">Prep / Setup</a></div>
+  </div>
+
+  <div class="one-flow-note"><b>No second app.</b> The predictor, sideline board, imports, reports, and staff tools now live inside one coach portal.</div>
+
+  <div class="stat-grid" style="margin:20px 0"><div class="stat"><b>Prep</b><span>opponent workflow</span></div><div class="stat"><b>Live</b><span>box to sideline sync</span></div><div class="stat"><b>Fast</b><span>quick game buttons</span></div><div class="stat"><b>Review</b><span>reports after game</span></div></div>
+
+  <div class="grid g3">
+    <a class="card flow-card" href="coach-console.html" style="text-decoration:none"><div class="flow-num">1</div><div><div class="eyebrow">Prepare</div><h3>Prep + Setup</h3><p class="muted">Opponent setup, imports, concepts, formations, star factor, analytics, and reports.</p></div></a>
+    <a class="card flow-card" href="coach-console.html" style="text-decoration:none"><div class="flow-num">2</div><div><div class="eyebrow">Game night</div><h3>Game Mode</h3><p class="muted">Live prediction, box controls, sideline board, and quick log.</p></div></a>
+    <a class="card flow-card" href="staff.html" style="text-decoration:none"><div class="flow-num">3</div><div><div class="eyebrow">Staff</div><h3>Coach workspace</h3><p class="muted">Keep your staff aligned without adding clutter to the game screen.</p></div></a>
+  </div>
+
+  <div class="workspace-grid" style="margin-top:20px"><div class="card"><div class="eyebrow">Your teams</div><div id="dashMsg" class="small muted"></div><div id="teamList" class="list"><div class="empty">Loading your teams...</div></div></div><div class="card"><div class="eyebrow">Create team workspace</div><p class="muted">Use this only if you coach multiple levels or want a clean workspace for a new season.</p><form class="form" onsubmit="createTeam(event)"><div><label>Team name</label><input id="newTeam" placeholder="Varsity Eagles, JV Defense, Week 7 Scout"></div><button class="btn primary" type="submit">Create team</button><div id="teamMsg" class="small muted"></div></form></div></div>
+</div></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="assets/config.js"></script><script src="assets/supabase-app.js"></script><script>loadDashboard()</script></body></html>

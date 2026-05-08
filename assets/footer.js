@@ -1,0 +1,1 @@
+document.write(`<footer class="footer"><div class="footer-inner"><div><b>Analyst Assist</b><div class="small">Coach-first football tendency analytics.</div></div><div class="small"><a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <a href="signup.html">Sign up</a></div></div></footer>`);
