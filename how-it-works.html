@@ -14,7 +14,7 @@
     .hiw-links{display:flex;gap:8px;flex-wrap:wrap}.hiw-links a{color:var(--text);text-decoration:none;border:1px solid var(--line);padding:9px 12px;border-radius:999px;background:rgba(255,255,255,.04);font-weight:800;font-size:12px}.hiw-links a:hover{border-color:rgba(245,197,66,.5)}
     .hero{border:1px solid rgba(245,197,66,.25);background:linear-gradient(135deg,rgba(245,197,66,.12),rgba(56,189,248,.07)),rgba(11,18,32,.86);border-radius:28px;padding:30px;box-shadow:0 20px 80px rgba(0,0,0,.28)}
     .eyebrow{font:900 12px var(--mono);letter-spacing:.12em;color:var(--gold);text-transform:uppercase}.hero h1{font-size:clamp(34px,6vw,64px);line-height:.96;margin:10px 0 14px}.lead{color:#cbd5e1;font-size:18px;line-height:1.6;max-width:850px}.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;margin-top:18px}.card{grid-column:span 12;border:1px solid var(--line);border-radius:22px;background:rgba(11,18,32,.82);padding:20px}.half{grid-column:span 6}.third{grid-column:span 4}.two{grid-column:span 8}.card h2,.card h3{margin:0 0 10px}.muted{color:var(--muted);line-height:1.55}.steps{counter-reset:step}.step{display:grid;grid-template-columns:42px 1fr;gap:14px;padding:14px 0;border-top:1px solid var(--line)}.step:first-child{border-top:0}.num{width:34px;height:34px;border-radius:12px;background:rgba(245,197,66,.14);border:1px solid rgba(245,197,66,.35);display:grid;place-items:center;color:var(--gold);font:900 13px var(--mono)}
-     .logic-box{background:#05070b;border:1px solid rgba(148,163,184,.22);border-radius:18px;padding:16px;margin:12px 0;color:#e2e8f0}.logic-box b{color:var(--gold)}.tag-row{display:flex;gap:8px;flex-wrap:wrap}.tag{border:1px solid var(--line);border-radius:999px;padding:7px 10px;font:800 11px var(--mono);background:rgba(255,255,255,.04)}.run{color:var(--green)}.pass{color:var(--blue)}.rpo{color:var(--gold)}.screen{color:var(--purple)}.warn{color:var(--red)}
+    .formula{background:#05070b;border:1px solid rgba(148,163,184,.22);border-radius:18px;padding:16px;margin:12px 0;font-family:var(--mono);font-size:13px;color:#e2e8f0;overflow:auto}.formula b{color:var(--gold)}.tag-row{display:flex;gap:8px;flex-wrap:wrap}.tag{border:1px solid var(--line);border-radius:999px;padding:7px 10px;font:800 11px var(--mono);background:rgba(255,255,255,.04)}.run{color:var(--green)}.pass{color:var(--blue)}.rpo{color:var(--gold)}.screen{color:var(--purple)}.warn{color:var(--red)}
     table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px solid var(--line);padding:10px 8px;text-align:left;vertical-align:top}th{color:var(--gold);font:900 12px var(--mono);text-transform:uppercase}td{color:#dbeafe}.callout{border-left:4px solid var(--gold);padding:12px 14px;background:rgba(245,197,66,.08);border-radius:12px;color:#e2e8f0}.small{font-size:12px;color:var(--muted)}
     @media(max-width:800px){.half,.third,.two{grid-column:span 12}.hero{padding:22px}.hiw-wrap{padding-top:20px}}
   </style>
@@ -34,7 +34,7 @@
     <section class="hero">
       <div class="eyebrow">Analyst Assist, Built Like a Coach Tool</div>
       <h1>How Analyst Assist works</h1>
-      <p class="lead">Analyst Assist turns opponent film data and live game charting into a fast tendency board. It does not claim to know the next play with certainty. It helps your staff identify what the offense is most likely to do based on situation, opponent history, live adjustments, sequence behavior, and key-player impact.</p>
+      <p class="lead">The site turns opponent film data and live game charting into a fast tendency board. It does not claim to know the next play with certainty. It ranks the most likely offensive answers based on situation, opponent history, live adjustments, sequence behavior, and star-player impact.</p>
       <div class="tag-row">
         <span class="tag run">Run %</span><span class="tag pass">Pass %</span><span class="tag rpo">RPO %</span><span class="tag screen">Screen %</span><span class="tag warn">Alerts</span>
       </div>
@@ -46,8 +46,8 @@
         <div class="steps">
           <div class="step"><div class="num">1</div><div><h3>Load opponent data</h3><p class="muted">Import charted film or manually enter plays with down, distance, field zone, personnel, formation, concept, play type, result, and optional star-player status.</p></div></div>
           <div class="step"><div class="num">2</div><div><h3>Select the current situation</h3><p class="muted">During prep or live game mode, choose down, distance, zone, personnel, formation family, hash, tempo, and star status.</p></div></div>
-          <div class="step"><div class="num">3</div><div><h3>The engine evaluates likely answers</h3><p class="muted">Each possible call is evaluated using matching film, matching live-game plays, broader opponent tendencies, recent sequence behavior, and key-player influence.</p></div></div>
-          <div class="step"><div class="num">4</div><div><h3>The board turns signals into percentages</h3><p class="muted">The system converts those tendency signals into top plays plus overall Run, Pass, RPO, and Screen probability.</p></div></div>
+          <div class="step"><div class="num">3</div><div><h3>The engine scores every active concept</h3><p class="muted">Each possible call gets a weighted score from matching film, matching live-game plays, general baseline tendency, sequence boost, and star-player adjustment.</p></div></div>
+          <div class="step"><div class="num">4</div><div><h3>Scores become percentages</h3><p class="muted">The system normalizes all concept scores so the board can show top plays plus overall Run, Pass, RPO, and Screen probability.</p></div></div>
           <div class="step"><div class="num">5</div><div><h3>Coaches log what actually happened</h3><p class="muted">The box coach can log detail. The sideline coach can simply tap Run %, Pass %, RPO %, or Screen % to record accountability and keep the board synced.</p></div></div>
         </div>
       </article>
@@ -60,52 +60,34 @@
       </aside>
 
       <article class="card half">
-        <h2>How the scoring works</h2>
-        <p class="muted">For each possible offensive answer, Analyst Assist compares the current situation against your opponent data and live charting. It gives the strongest credit to situations that closely match what is happening right now, then blends in broader tendencies when the exact sample is small.</p>
-        <div class="logic-box"><b>What matters most:</b> down and distance, field zone, personnel, formation, live-game calls, recent sequencing, and whether a key player is on or off the field.</div>
-        <div class="logic-box"><b>Coach takeaway:</b> the board is not guessing randomly. It is organizing the strongest tendency signals into a usable game-day recommendation.</div>
-      </article>
-
-      <article class="card half">
-        <h2>Situation matching</h2>
-        <p class="muted">The model starts with the closest matching situations first. If the sample is thin, it backs out to broader buckets so the board still gives your staff a useful answer without pretending the data is stronger than it is.</p>
+        <h2>How concepts are ranked</h2>
+        <p class="muted">Analyst Assist reviews every active offensive concept and ranks it using a blend of football context, opponent history, and live-game evidence. The goal is not to expose a raw formula; the goal is to give the staff a fast, trustworthy answer before the snap.</p>
         <table>
-          <tr><th>Match type</th><th>Meaning</th></tr>
-          <tr><td>Exact situation</td><td>Same down, distance bucket, and field zone.</td></tr>
-          <tr><td>Down-distance</td><td>Same down and distance bucket.</td></tr>
-          <tr><td>Personnel</td><td>Same offensive personnel grouping.</td></tr>
-          <tr><td>Formation</td><td>Same formation or formation family.</td></tr>
-          <tr><td>Phase</td><td>Same game phase, such as normal, two-minute, red zone, or backed-up.</td></tr>
-          <tr><td>Overall</td><td>Opponent’s total tendency across the dataset.</td></tr>
+          <tr><th>Input</th><th>How it helps</th></tr>
+          <tr><td>Situation</td><td>Down, distance, field zone, score, tempo, and game phase help identify what the offense usually wants in that exact moment.</td></tr>
+          <tr><td>Personnel</td><td>The model compares the current personnel grouping to prior calls from the same grouping.</td></tr>
+          <tr><td>Formation</td><td>The model uses both exact formation and broader formation family so it can still help when tags vary.</td></tr>
+          <tr><td>Film data</td><td>Pregame tendency gives the starting point before the opponent reveals its plan.</td></tr>
+          <tr><td>Live data</td><td>As the game develops, live charting becomes more important because it reflects the opponent’s current plan.</td></tr>
         </table>
       </article>
 
       <article class="card half">
-        <h2>How the percentages work</h2>
-        <p class="muted">Once the system ranks likely offensive answers, it groups them into play-type buckets so the sideline can quickly see the bigger picture.</p>
-        <div class="logic-box"><b>Run %</b> shows how much the current situation leans toward run-family calls.</div>
-        <div class="logic-box"><b>Pass %</b> shows how much the current situation leans toward dropback or pass-family calls.</div>
-        <div class="logic-box"><b>RPO %</b> shows how often the offense may attach or package a read element to the call.</div>
-        <div class="logic-box"><b>Screen %</b> is separated because coaches often want screen alerts treated differently than normal pass game.</div>
+        <h2>How Run, Pass, RPO, and Screen percentages are created</h2>
+        <p class="muted">After concepts are ranked, Analyst Assist groups them by play type. That gives coaches a clean sideline view: how likely is the offense to run, pass, tag an RPO, or throw a screen from this situation?</p>
+        <div class="callout"><strong>Coach translation:</strong> the percentages are a live tendency split, not a guarantee. Use them as alerts for what your call sheet needs to defend right now.</div>
       </article>
 
       <article class="card half">
         <h2>Live-game weighting</h2>
-        <p class="muted">Live game data becomes more important as more plays are logged. Early in the game, film study still carries more of the board. As the opponent reveals its plan, the live call sheet starts to carry more influence.</p>
-        <div class="logic-box"><b>Coach takeaway:</b> the system should not overreact after two or three plays. It gets more confident as the live sample grows.</div>
+        <p class="muted">Early in the game, Analyst Assist leans more on opponent film and baseline tendency. As more live plays are logged, it shifts toward what the offense is actually doing that night.</p>
+        <div class="callout">Example: if film said the opponent was balanced, but they open the game with repeated second-down screens, the sideline view starts surfacing that screen tendency faster.</div>
       </article>
 
       <article class="card half">
-        <h2>Sequence tracking</h2>
-        <p class="muted">Analyst Assist watches how the offense strings calls together. It looks for patterns such as what they like after a run, what they like after a screen, or what they call after a specific concept shows up.</p>
-        <div class="logic-box"><b>Coach takeaway:</b> the alert is about the offense’s rhythm, not just the static down-and-distance tendency.</div>
-      </article>
-
-      <article class="card half">
-        <h2>Key-player adjustment</h2>
-        <p class="muted">If you chart whether a key player is on or off the field, Analyst Assist can adjust the board toward the concepts that player usually affects.</p>
-        <div class="logic-box"><b>Coach takeaway:</b> if the offense changes when a certain back, quarterback, receiver, or tight end is in the game, the board can help flag that tendency.</div>
-        <p class="small">If there are not enough on/off samples, the model shows a low-confidence alert instead of forcing a strong adjustment.</p>
+        <h2>Sequence and star-player context</h2>
+        <p class="muted">The engine also watches for sequencing patterns, such as what follows a run, shot, screen, or RPO. If a key player is tagged as ON/OFF, it can adjust alerts around concepts that commonly involve that player.</p>
+        <p class="small">When sample size is thin, Analyst Assist should be treated as a tendency alert rather than a hard prediction.</p>
       </article>
 
       <article class="card third">
@@ -127,7 +109,7 @@
       <article class="card third">
         <h2>Sideline mode</h2>
         <p class="muted">Sideline mode is intentionally simpler: see the split, see the alert, tap the actual play type, and keep moving.</p>
-        <div class="logic-box">Tap <b>Run %</b>, <b>Pass %</b>, <b>RPO %</b>, or <b>Screen %</b> to log accountability for that play type.</div>
+        <div class="callout">Tap <b>Run %</b>, <b>Pass %</b>, <b>RPO %</b>, or <b>Screen %</b> to log the actual play type without adding extra sideline buttons.</div>
       </article>
     </section>
   </main>
