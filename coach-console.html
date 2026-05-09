@@ -390,6 +390,39 @@ tr:hover td { background: rgba(16,31,59,.6); }
 .stat-bar-row .label-row { display: flex; justify-content: space-between; margin-bottom: 4px; font: 12px var(--mono); color: var(--muted); }
 .stat-bar-row .label-row b { color: var(--text); }
 
+
+/* ── SCOUTING REPORT PACKET ── */
+.scout-packet { display: grid; gap: 14px; }
+.scout-cover {
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 14px;
+  border: 1px solid rgba(245,197,66,.35); border-radius: 16px; padding: 16px;
+  background: linear-gradient(135deg, rgba(0,87,184,.22), rgba(245,197,66,.08));
+}
+.scout-cover h2 { font: 900 26px var(--mono); margin: 0 0 4px; }
+.scout-cover p { color: var(--muted); font: 12px var(--mono); }
+.scout-badge { border: 1px solid rgba(245,197,66,.5); border-radius: 999px; padding: 8px 12px; color: var(--gold); font: 900 11px var(--mono); white-space: nowrap; }
+.scout-box { background: #07101e; border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+.scout-box h3 { font: 900 11px var(--mono); color: var(--gold); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 10px; }
+.scout-box ul { margin-left: 18px; color: var(--text); }
+.scout-box li { margin: 6px 0; color: var(--muted); }
+.scout-call-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+.scout-call { border: 1px solid rgba(30,48,80,.9); background: #0d1420; border-radius: 12px; padding: 10px; }
+.scout-call b { display: block; color: var(--text); font: 800 12px var(--mono); margin-bottom: 4px; }
+.scout-call span { color: var(--gold); font: 800 11px var(--mono); }
+.scout-kpis { margin-bottom: 0; }
+@media(max-width:700px){ .scout-cover{flex-direction:column}.scout-call-grid{grid-template-columns:1fr}.scout-badge{white-space:normal} }
+
+
+/* ── DEFENSIVE SYSTEM BUILDER ── */
+.def-system-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:14px}
+.def-system-card{background:#07101e;border:1px solid var(--line);border-radius:12px;padding:12px}
+.def-system-card strong{display:block;font:800 11px var(--mono);color:var(--gold);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.check-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px 10px}
+.check-item{display:flex;align-items:center;gap:7px;color:var(--muted);font:700 11px var(--mono);line-height:1.35}
+.check-item input{accent-color:var(--gold)}
+.def-dna-box{margin-top:12px;border-left:3px solid var(--gold);background:rgba(245,197,66,.07);border-radius:10px;padding:10px 14px;color:var(--text);font:12px/1.6 var(--mono)}
+@media(max-width:760px){.def-system-grid{grid-template-columns:1fr}.check-grid{grid-template-columns:1fr}}
+
 /* ── MISC ── */
 .small { font-size: 12px; color: var(--muted); }
 .mono  { font-family: var(--mono); }
@@ -675,7 +708,8 @@ input[type=file] { background: transparent; border: none; padding: 0; }
       <div class="card-title" style="margin:0">Scouting Report</div>
       <div class="row">
         <button class="btn btn-sm" onclick="copyReport()">Copy staff sheet</button>
-        <button class="btn btn-sm btn-primary" onclick="downloadReport()">Export PDF/text</button>
+        <button class="btn btn-sm" onclick="printScoutReport()">Print / PDF</button>
+        <button class="btn btn-sm btn-primary" onclick="downloadReport()">Export text</button>
       </div>
     </div>
     <div id="scoutReport"></div>
@@ -859,31 +893,105 @@ input[type=file] { background: transparent; border: none; padding: 0; }
   <!-- Defensive system -->
   <div class="card">
     <div class="card-title">Your Defensive System</div>
-    <p class="small" style="margin-bottom:14px">This makes the answer board realistic — recommendations use calls your staff actually carries.</p>
+    <p class="small" style="margin-bottom:14px">Build your defensive DNA so the answer board, scouting report, and recommendations use your staff language.</p>
     <div class="g4">
       <div><label>Base defense</label>
-        <select id="s-base" onchange="saveSetup();runPredict()">
+        <select id="s-base" onchange="saveSetup();renderDefenseDna();runPredict()">
           <option>4-2-5</option><option>3-3-5</option><option>4-3</option><option>3-4</option><option>Odd Stack</option><option>Multiple</option></select></div>
       <div><label>Run fit</label>
-        <select id="s-fit" onchange="saveSetup();runPredict()">
+        <select id="s-fit" onchange="saveSetup();renderDefenseDna();runPredict()">
           <option value="spill">Spill / force outside</option><option value="box">Box / set edge</option><option value="mixed">Mixed by call</option></select></div>
       <div><label>Coverage family</label>
-        <select id="s-cov" onchange="saveSetup();runPredict()">
+        <select id="s-cov" onchange="saveSetup();renderDefenseDna();runPredict()">
           <option>Quarters</option><option>Cover 3</option><option>Cover 2 / Cloud</option><option>Man Free</option><option>Multiple</option></select></div>
       <div><label>Pressure style</label>
-        <select id="s-pres" onchange="saveSetup();runPredict()">
+        <select id="s-pres" onchange="saveSetup();renderDefenseDna();runPredict()">
           <option>Sim pressures</option><option>Zone blitz</option><option>Man pressure</option><option>Rush 4 / coverage</option><option>Multiple</option></select></div>
     </div>
+
     <div class="g3" style="margin-top:12px">
-      <div><label>Primary fronts</label><input type="text" id="s-fronts" placeholder="Over, Under, Mint, Bear" oninput="saveSetup()"></div>
-      <div><label>Favorite pressures</label><input type="text" id="s-pressures" placeholder="Field fire, boundary cat, pirate" oninput="saveSetup()"></div>
-      <div><label>Coverage checks</label><input type="text" id="s-checks" placeholder="Sky, Cloud, Robber, Palms" oninput="saveSetup()"></div>
+      <div><label>Primary fronts</label><input type="text" id="s-fronts" placeholder="Over, Under, Mint, Bear" oninput="saveSetup();renderDefenseDna()"></div>
+      <div><label>Favorite pressures</label><input type="text" id="s-pressures" placeholder="Field fire, boundary cat, pirate" oninput="saveSetup();renderDefenseDna()"></div>
+      <div><label>Coverage checks</label><input type="text" id="s-checks" placeholder="Sky, Cloud, Robber, Palms" oninput="saveSetup();renderDefenseDna()"></div>
     </div>
+
+    <div class="def-system-grid">
+      <div class="def-system-card">
+        <strong>Defensive identity</strong>
+        <div class="check-grid">
+          <label class="check-item"><input type="checkbox" data-check-group="identity" value="Aggressive pressure team" onchange="saveSetup();renderDefenseDna()"> Aggressive pressure team</label>
+          <label class="check-item"><input type="checkbox" data-check-group="identity" value="Bend-don't-break" onchange="saveSetup();renderDefenseDna()"> Bend-don't-break</label>
+          <label class="check-item"><input type="checkbox" data-check-group="identity" value="Spill run fits" onchange="saveSetup();renderDefenseDna()"> Spill run fits</label>
+          <label class="check-item"><input type="checkbox" data-check-group="identity" value="Match coverage principles" onchange="saveSetup();renderDefenseDna()"> Match coverage principles</label>
+          <label class="check-item"><input type="checkbox" data-check-group="identity" value="Sim pressure heavy" onchange="saveSetup();renderDefenseDna()"> Sim pressure heavy</label>
+          <label class="check-item"><input type="checkbox" data-check-group="identity" value="Man pressure on 3rd down" onchange="saveSetup();renderDefenseDna()"> Man pressure on 3rd down</label>
+        </div>
+      </div>
+
+      <div class="def-system-card">
+        <strong>Situational philosophy</strong>
+        <div class="g2">
+          <div><label>3rd down pressure rate</label><select id="s-third-pressure" onchange="saveSetup();renderDefenseDna()"><option>Low</option><option selected>Medium</option><option>High</option></select></div>
+          <div><label>Red zone style</label><select id="s-rz-style" onchange="saveSetup();renderDefenseDna()"><option>Match zones</option><option>Man-heavy</option><option>Zero pressure</option><option>Drop-8</option><option>Mixed</option></select></div>
+        </div>
+        <div style="margin-top:10px"><label>Situational notes</label><input type="text" id="s-sit-notes" placeholder="e.g. Heat up 3rd medium, cloud boundary in RZ" oninput="saveSetup();renderDefenseDna()"></div>
+      </div>
+
+      <div class="def-system-card">
+        <strong>Personnel grouping preferences</strong>
+        <div class="g2">
+          <div><label>Vs 10 personnel</label><input type="text" id="s-vs10" placeholder="Nickel / Mint" oninput="saveSetup()"></div>
+          <div><label>Vs 11 personnel</label><input type="text" id="s-vs11" placeholder="Base 4-2-5" oninput="saveSetup()"></div>
+          <div><label>Vs 12 personnel</label><input type="text" id="s-vs12" placeholder="Over / Under" oninput="saveSetup()"></div>
+          <div><label>Vs Empty</label><input type="text" id="s-vsempty" placeholder="Dime / Check coverage" oninput="saveSetup()"></div>
+        </div>
+      </div>
+
+      <div class="def-system-card">
+        <strong>Front + coverage pairings</strong>
+        <textarea id="s-pairings" placeholder="Mint → Quarters&#10;Odd → Cover 3&#10;Pressure → Cover 1" oninput="saveSetup()"></textarea>
+      </div>
+
+      <div class="def-system-card">
+        <strong>What hurts us?</strong>
+        <div class="check-grid">
+          <label class="check-item"><input type="checkbox" data-check-group="weakness" value="QB Run" onchange="saveSetup();renderDefenseDna()"> QB Run</label>
+          <label class="check-item"><input type="checkbox" data-check-group="weakness" value="Empty formations" onchange="saveSetup();renderDefenseDna()"> Empty formations</label>
+          <label class="check-item"><input type="checkbox" data-check-group="weakness" value="Fast tempo" onchange="saveSetup();renderDefenseDna()"> Fast tempo</label>
+          <label class="check-item"><input type="checkbox" data-check-group="weakness" value="RB screens" onchange="saveSetup();renderDefenseDna()"> RB screens</label>
+          <label class="check-item"><input type="checkbox" data-check-group="weakness" value="Bunch / stacks" onchange="saveSetup();renderDefenseDna()"> Bunch / stacks</label>
+          <label class="check-item"><input type="checkbox" data-check-group="weakness" value="RPO glance" onchange="saveSetup();renderDefenseDna()"> RPO glance</label>
+        </div>
+      </div>
+
+      <div class="def-system-card">
+        <strong>Staff roles</strong>
+        <div class="g2">
+          <div><label>DC</label><input type="text" id="s-staff-dc" placeholder="Name" oninput="saveSetup()"></div>
+          <div><label>LB Coach</label><input type="text" id="s-staff-lb" placeholder="Name" oninput="saveSetup()"></div>
+          <div><label>Secondary</label><input type="text" id="s-staff-sec" placeholder="Name" oninput="saveSetup()"></div>
+          <div><label>GA / QC</label><input type="text" id="s-staff-qc" placeholder="Name" oninput="saveSetup()"></div>
+        </div>
+      </div>
+
+      <div class="def-system-card">
+        <strong>Terminology / install language</strong>
+        <textarea id="s-terminology" placeholder="Front names, coverage tags, pressure names, checks..." oninput="saveSetup()"></textarea>
+      </div>
+
+      <div class="def-system-card">
+        <strong>Self-scout profile</strong>
+        <textarea id="s-self-scout" placeholder="e.g. 72% quarters on 2nd medium; favorite pressure: Cross Dog; best call: Cover 6" oninput="saveSetup()"></textarea>
+      </div>
+    </div>
+
+    <div id="defense-dna-out" class="def-dna-box">Defensive DNA summary will appear here after setup.</div>
+
     <div class="row" style="margin-top:12px">
-      <button class="btn btn-sm" onclick="loadPreset('4-2-5')">4-2-5</button>
-      <button class="btn btn-sm" onclick="loadPreset('3-3-5')">3-3-5</button>
-      <button class="btn btn-sm" onclick="loadPreset('4-3')">4-3</button>
-      <button class="btn btn-sm" onclick="loadPreset('3-4')">3-4</button>
+      <button class="btn btn-sm" onclick="loadPreset('4-2-5');renderDefenseDna()">4-2-5</button>
+      <button class="btn btn-sm" onclick="loadPreset('3-3-5');renderDefenseDna()">3-3-5</button>
+      <button class="btn btn-sm" onclick="loadPreset('4-3');renderDefenseDna()">4-3</button>
+      <button class="btn btn-sm" onclick="loadPreset('3-4');renderDefenseDna()">3-4</button>
     </div>
   </div>
 
@@ -1047,7 +1155,8 @@ let ST = {
   customFormations: [], deletedFormations: [], activeFormations: [],
   live: [], film: [],
   importTemplates: [],
-  defense: { base:'4-2-5', fit:'spill', cov:'Quarters', pres:'Sim pressures', fronts:'Over, Under, Mint, Bear', pressures:'Field fire, boundary cat, pirate', checks:'Sky, Cloud, Robber, Palms' },
+  scoutNotes: '',
+  defense: { base:'4-2-5', fit:'spill', cov:'Quarters', pres:'Sim pressures', fronts:'Over, Under, Mint, Bear', pressures:'Field fire, boundary cat, pirate', checks:'Sky, Cloud, Robber, Palms', identity:[], thirdPressure:'Medium', rzStyle:'Match zones', situationalNotes:'', personnel:{vs10:'',vs11:'',vs12:'',vsempty:''}, pairings:'', weaknesses:[], staff:{dc:'',lb:'',sec:'',qc:''}, terminology:'', selfScout:'' },
   star: { on: false, name: '', pos: 'RB', min: 10, touch: [] }
 };
 
@@ -1062,6 +1171,24 @@ const esc = s => String(s??'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','
 function pct(n,d){ return d ? Math.round(n/d*100) : 0; }
 function countBy(arr, key){ let o={}; arr.forEach(p=>{ let k=typeof key==='function'?key(p):p[key]; if(k!=null)o[k]=(o[k]||0)+1; }); return o; }
 function topEntry(o){ return Object.entries(o).sort((a,b)=>b[1]-a[1])[0]; }
+
+function checkedValues(group){ return Array.from(document.querySelectorAll(`[data-check-group="${group}"]:checked`)).map(x=>x.value); }
+function setCheckedValues(group, values){
+  const set = new Set(values || []);
+  document.querySelectorAll(`[data-check-group="${group}"]`).forEach(cb=>{ cb.checked = set.has(cb.value); });
+}
+function setVal(id, value){ if($(id)) $(id).value = value || ''; }
+function defenseDnaText(){
+  let d = ST.defense || {};
+  let identity = (d.identity || []).join(', ') || 'balanced';
+  let weaknesses = (d.weaknesses || []).length ? ` Stress points: ${(d.weaknesses || []).join(', ')}.` : '';
+  let third = d.thirdPressure || 'Medium';
+  let rz = d.rzStyle || 'Match zones';
+  return `${d.base || 'Multiple'} defense · ${d.fit || 'mixed'} run fit · ${d.cov || 'Multiple'} coverage family · ${d.pres || 'Multiple'} pressure style. Identity: ${identity}. 3rd down pressure: ${third}. Red zone: ${rz}.${weaknesses}`;
+}
+function renderDefenseDna(){
+  if($('defense-dna-out')) $('defense-dna-out').textContent = defenseDnaText();
+}
 
 function typeOf(c){ return CONCEPTS.find(x=>x[0]===c)?.[1] || 'Run'; }
 
@@ -1134,6 +1261,10 @@ function loadState(){
     ST = { ...ST, ...s };
     ST.star = { ...ST.star, ...(s.star||{}) };
     ST.defense = { ...ST.defense, ...(s.defense||{}) };
+    ST.defense.personnel = { vs10:'', vs11:'', vs12:'', vsempty:'', ...(ST.defense.personnel||{}) };
+    ST.defense.staff = { dc:'', lb:'', sec:'', qc:'', ...(ST.defense.staff||{}) };
+    if(!Array.isArray(ST.defense.identity))ST.defense.identity=[];
+    if(!Array.isArray(ST.defense.weaknesses))ST.defense.weaknesses=[];
     if(!Array.isArray(ST.customConcepts))ST.customConcepts=[];
     if(!Array.isArray(ST.deletedConcepts))ST.deletedConcepts=[];
     if(!Array.isArray(ST.customFormations))ST.customFormations=[];
@@ -1162,6 +1293,16 @@ function saveSetup(){
   ST.defense.fronts = val('s-fronts');
   ST.defense.pressures = val('s-pressures');
   ST.defense.checks = val('s-checks');
+  ST.defense.identity = checkedValues('identity');
+  ST.defense.thirdPressure = val('s-third-pressure') || 'Medium';
+  ST.defense.rzStyle = val('s-rz-style') || 'Match zones';
+  ST.defense.situationalNotes = val('s-sit-notes');
+  ST.defense.personnel = { vs10:val('s-vs10'), vs11:val('s-vs11'), vs12:val('s-vs12'), vsempty:val('s-vsempty') };
+  ST.defense.pairings = val('s-pairings');
+  ST.defense.weaknesses = checkedValues('weakness');
+  ST.defense.staff = { dc:val('s-staff-dc'), lb:val('s-staff-lb'), sec:val('s-staff-sec'), qc:val('s-staff-qc') };
+  ST.defense.terminology = val('s-terminology');
+  ST.defense.selfScout = val('s-self-scout');
   ST.star.on = val('s-star-on') === 'yes';
   ST.star.name = val('s-star-name');
   ST.star.pos = val('s-star-pos') || 'RB';
@@ -1731,6 +1872,8 @@ function copyLiveToFilm(){
   if($('f-star'))$('f-star').value=val('g-star');
 }
 
+// ─── ANALYTICS ────────────────────────────────────────────────
+
 function statBars(obj,total,labelFn){
   const entries = Object.entries(obj || {})
     .sort((a,b)=>b[1]-a[1])
@@ -1756,8 +1899,7 @@ function statBars(obj,total,labelFn){
       </div>`;
   }).join('');
 }
-  
-// ─── ANALYTICS ────────────────────────────────────────────────
+
 function renderAnalytics(){
   let all=[...ST.film,...ST.live];
 
@@ -1860,6 +2002,222 @@ function renderAnalytics(){
   }
 }
 
+
+// ─── SCOUTING REPORT / SUNDAY STAFF HANDOUT ───────────────────
+function scoutDataSet(){ return [...ST.film,...ST.live]; }
+function scoutTopConcept(arr){ return arr.length ? topEntry(countBy(arr,'concept')) : null; }
+function scoutTypePct(arr){
+  let sp=splitFromData(arr), n=arr.length||1;
+  return {run:pct(sp.run,n), pass:pct(sp.pass,n), rpo:pct(sp.rpo,n), screen:pct(sp.screen,n), raw:sp};
+}
+function scoutTopN(arr,key='concept',limit=5){
+  return Object.entries(countBy(arr,key)).sort((a,b)=>b[1]-a[1]).slice(0,limit);
+}
+function saveScoutNotes(){ ST.scoutNotes=val('scout-notes'); silentSave(); }
+
+function scoutIdentity(all){
+  if(!all.length) return ['No scouting data loaded yet.'];
+  const t=scoutTypePct(all), notes=[];
+  const persTop=topEntry(countBy(all,'personnel'));
+  const formTop=topEntry(countBy(all,'formation'));
+  const tempoTop=topEntry(countBy(all,'tempo'));
+  const ex=all.filter(p=>['xp','td'].includes(p.result)).length;
+  if(t.run>=55) notes.push(`Run-first offense (${t.run}% run).`);
+  else if(t.pass>=55) notes.push(`Pass-first offense (${t.pass}% pass).`);
+  else notes.push(`Balanced offense: ${t.run}% run, ${t.pass}% pass, ${t.rpo}% RPO, ${t.screen}% screen.`);
+  if(t.screen>=12) notes.push(`Screen game is a weekly alert (${t.screen}% of charted calls).`);
+  if(t.rpo>=12) notes.push(`RPO/read element is active (${t.rpo}% of charted calls).`);
+  if(persTop) notes.push(`Primary personnel: ${persTop[0]} (${pct(persTop[1],all.length)}%).`);
+  if(formTop) notes.push(`Most-used formation: ${formTop[0]} (${pct(formTop[1],all.length)}%).`);
+  if(tempoTop && tempoTop[0] && tempoTop[0] !== 'normal') notes.push(`Tempo note: ${tempoTop[0]} shows up ${pct(tempoTop[1],all.length)}%.`);
+  if(ex) notes.push(`Explosive rate: ${pct(ex,all.length)}% (${ex}/${all.length}).`);
+  return notes.slice(0,6);
+}
+
+function scoutSituationRows(all){
+  const situations=[
+    ['1st Down', p=>p.down==='1'],
+    ['2nd & Short', p=>p.down==='2'&&p.dist==='short'],
+    ['2nd & Long', p=>p.down==='2'&&['long','xlong'].includes(p.dist)],
+    ['3rd & Short', p=>p.down==='3'&&p.dist==='short'],
+    ['3rd & Medium', p=>p.down==='3'&&p.dist==='normal'],
+    ['3rd & Long', p=>p.down==='3'&&['long','xlong'].includes(p.dist)],
+    ['Red Zone / Goal Line', p=>['rz','gl'].includes(p.zone)]
+  ];
+  return situations.map(([label,fn])=>{
+    const plays=all.filter(fn), top=scoutTopConcept(plays), t=scoutTypePct(plays);
+    return {label, plays, top, t};
+  }).filter(r=>r.plays.length);
+}
+
+function scoutFormationAlerts(all){
+  const by={};
+  all.forEach(p=>{ const k=p.formation||'Unknown'; (by[k]??=[]).push(p); });
+  return Object.entries(by).map(([form,plays])=>{
+    const top=scoutTopConcept(plays), t=scoutTypePct(plays);
+    let alert='Balanced look';
+    if(t.run>=60) alert='Run alert';
+    else if(t.pass>=60) alert='Pass alert';
+    else if(t.screen>=15) alert='Screen alert';
+    else if(t.rpo>=15) alert='RPO alert';
+    return {form,plays,top,t,alert};
+  }).filter(x=>x.plays.length>=2).sort((a,b)=>b.plays.length-a.plays.length).slice(0,8);
+}
+
+function scoutExplosiveProfile(all){
+  const ex=all.filter(p=>['xp','td'].includes(p.result));
+  const byConcept=scoutTopN(ex,'concept',4);
+  const byForm=scoutTopN(ex,'formation',3);
+  const byType=splitFromData(ex);
+  return {ex, byConcept, byForm, byType};
+}
+
+function scoutDefensiveRecommendations(all){
+  const t=scoutTypePct(all), preds=computePreds(), rec=defenseRec(preds), tips=[];
+  if(t.run>=55) tips.push('Build the call sheet around stopping the run first; make them win left-handed on passing downs.');
+  if(t.pass>=55) tips.push('Win early downs with coverage disguise and simulated pressure answers.');
+  if(t.screen>=12) tips.push('Add a screen/RPO reminder to every call sheet section: retrace DL, trigger apex, tackle in space.');
+  if(t.rpo>=12) tips.push('Coach second-level eyes all week: fit run first, then replace windows with leverage.');
+  const thirdLong=all.filter(p=>p.down==='3'&&['long','xlong'].includes(p.dist));
+  if(thirdLong.length){ const top=scoutTopConcept(thirdLong); if(top) tips.push(`3rd & long alert: ${top[0]} is their top answer (${pct(top[1],thirdLong.length)}%).`); }
+  const rz=all.filter(p=>['rz','gl'].includes(p.zone));
+  if(rz.length){ const top=scoutTopConcept(rz); if(top) tips.push(`Red zone alert: ${top[0]} shows up ${pct(top[1],rz.length)}% in tight-field snaps.`); }
+  tips.push(`Suggested front/fit: ${rec.front}`);
+  tips.push(`Suggested coverage answer: ${rec.cov}`);
+  return tips.slice(0,8);
+}
+
+function buildScoutReportHtml(printMode=false){
+  const all=scoutDataSet();
+  if(!all.length){
+    return '<div class="empty-state">Import film or load demo data to generate the Sunday scouting report.</div>';
+  }
+  const t=scoutTypePct(all), identity=scoutIdentity(all), topCalls=scoutTopN(all,'concept',6), sitRows=scoutSituationRows(all), formAlerts=scoutFormationAlerts(all), exp=scoutExplosiveProfile(all), recs=scoutDefensiveRecommendations(all);
+  const sample=`${ST.film.length} film · ${ST.live.length} live · ${all.length} total`;
+  const notes=ST.scoutNotes||'';
+  return `
+    <div class="scout-packet ${printMode?'print-mode':''}">
+      <div class="scout-cover">
+        <div>
+          <div class="card-title">Sunday Defensive Staff Packet</div>
+          <h2>${esc(ST.opp||'Opponent')} Scout</h2>
+          <p>${esc(ST.week||'Game Week')} · ${esc(ST.teamName||'Team')} · ${sample}</p>
+        </div>
+        <div class="scout-badge">${t.run}% RUN · ${t.pass}% PASS · ${t.rpo}% RPO · ${t.screen}% SCREEN</div>
+      </div>
+
+      <div class="g3 scout-kpis">
+        <div class="kpi"><span class="kpi-val">${t.run}%</span><div class="kpi-label">Run</div></div>
+        <div class="kpi"><span class="kpi-val">${t.pass}%</span><div class="kpi-label">Pass</div></div>
+        <div class="kpi"><span class="kpi-val">${t.screen}%</span><div class="kpi-label">Screen</div></div>
+      </div>
+
+      <div class="g2">
+        <div class="scout-box">
+          <h3>Offensive Identity</h3>
+          <ul>${identity.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+        </div>
+        <div class="scout-box">
+          <h3>Defensive Recommendations</h3>
+          <ul>${recs.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+        </div>
+      </div>
+
+      <div class="scout-box">
+        <h3>Most Likely Calls</h3>
+        <div class="scout-call-grid">
+          ${topCalls.map(([k,v],i)=>`
+            <div class="scout-call">
+              <b>${i+1}. ${esc(k)}</b>
+              <span>${pct(v,all.length)}% · ${v}/${all.length}</span>
+            </div>`).join('')}
+        </div>
+      </div>
+
+      <div class="scout-box">
+        <h3>Down & Distance Heat Sheet</h3>
+        <div class="tablewrap"><table>
+          <thead><tr><th>Situation</th><th>Top Call</th><th>Run</th><th>Pass</th><th>RPO</th><th>Screen</th><th>Sample</th></tr></thead>
+          <tbody>${sitRows.map(r=>`
+            <tr><td>${esc(r.label)}</td><td>${r.top?esc(r.top[0])+' '+pct(r.top[1],r.plays.length)+'%':'—'}</td><td>${r.t.run}%</td><td>${r.t.pass}%</td><td>${r.t.rpo}%</td><td>${r.t.screen}%</td><td>${r.plays.length}</td></tr>`).join('')}</tbody>
+        </table></div>
+      </div>
+
+      <div class="g2">
+        <div class="scout-box">
+          <h3>Formation Alerts</h3>
+          ${formAlerts.length?formAlerts.map(f=>`
+            <div class="trend-line"><b>${esc(f.form)}</b><span>${esc(f.alert)} · ${f.top?esc(f.top[0])+' '+pct(f.top[1],f.plays.length)+'%':'—'} · ${f.plays.length} snaps</span></div>`).join(''):'<div class="small">Need more formation samples.</div>'}
+        </div>
+        <div class="scout-box">
+          <h3>Explosive Play Profile</h3>
+          <div class="trend-line"><b>Total explosives</b><span>${exp.ex.length}/${all.length} · ${pct(exp.ex.length,all.length)}%</span></div>
+          <div class="trend-line"><b>By type</b><span>Run ${exp.byType.run} · Pass ${exp.byType.pass} · RPO ${exp.byType.rpo} · Screen ${exp.byType.screen}</span></div>
+          <div class="trend-line"><b>Top explosive concept</b><span>${exp.byConcept[0]?esc(exp.byConcept[0][0])+' ('+exp.byConcept[0][1]+')':'—'}</span></div>
+          <div class="trend-line"><b>Top explosive formation</b><span>${exp.byForm[0]?esc(exp.byForm[0][0])+' ('+exp.byForm[0][1]+')':'—'}</span></div>
+        </div>
+      </div>
+
+      <div class="scout-box">
+        <h3>Coordinator Notes</h3>
+        ${printMode?`<div class="halftime-text">${esc(notes||'Add staff notes here before printing.')}</div>`:`<textarea id="scout-notes" placeholder="Add Sunday staff notes: QB issues, protection tells, favorite pressures, motion alerts, call-sheet reminders…" oninput="saveScoutNotes()">${esc(notes)}</textarea>`}
+      </div>
+    </div>`;
+}
+
+function renderScoutReport(){
+  const el=$('scoutReport'); if(!el)return;
+  el.innerHTML=buildScoutReportHtml(false);
+}
+
+function buildScoutReportText(){
+  const all=scoutDataSet();
+  if(!all.length)return 'No scouting data loaded yet.';
+  const t=scoutTypePct(all), lines=[];
+  lines.push(`${ST.opp||'OPPONENT'} SUNDAY DEFENSIVE STAFF PACKET`);
+  lines.push(`${ST.week||'Game Week'} · ${ST.teamName||'Team'} · ${ST.film.length} film · ${ST.live.length} live · ${all.length} total`);
+  lines.push('');
+  lines.push(`OVERALL SPLIT: Run ${t.run}% · Pass ${t.pass}% · RPO ${t.rpo}% · Screen ${t.screen}%`);
+  lines.push('');
+  lines.push('OFFENSIVE IDENTITY');
+  scoutIdentity(all).forEach(x=>lines.push(`- ${x}`));
+  lines.push('');
+  lines.push('MOST LIKELY CALLS');
+  scoutTopN(all,'concept',6).forEach(([k,v],i)=>lines.push(`${i+1}. ${k} — ${pct(v,all.length)}% (${v}/${all.length})`));
+  lines.push('');
+  lines.push('DOWN & DISTANCE');
+  scoutSituationRows(all).forEach(r=>lines.push(`${r.label}: ${r.top?r.top[0]+' '+pct(r.top[1],r.plays.length)+'%':'—'} | Run ${r.t.run}% Pass ${r.t.pass}% RPO ${r.t.rpo}% Screen ${r.t.screen}% | ${r.plays.length} plays`));
+  lines.push('');
+  lines.push('FORMATION ALERTS');
+  scoutFormationAlerts(all).forEach(f=>lines.push(`- ${f.form}: ${f.alert}; ${f.top?f.top[0]+' '+pct(f.top[1],f.plays.length)+'%':'—'} (${f.plays.length})`));
+  lines.push('');
+  const exp=scoutExplosiveProfile(all);
+  lines.push(`EXPLOSIVE PROFILE: ${exp.ex.length}/${all.length} (${pct(exp.ex.length,all.length)}%)`);
+  if(exp.byConcept[0]) lines.push(`Top explosive concept: ${exp.byConcept[0][0]} (${exp.byConcept[0][1]})`);
+  if(exp.byForm[0]) lines.push(`Top explosive formation: ${exp.byForm[0][0]} (${exp.byForm[0][1]})`);
+  lines.push('');
+  lines.push('DEFENSIVE RECOMMENDATIONS');
+  scoutDefensiveRecommendations(all).forEach(x=>lines.push(`- ${x}`));
+  lines.push('');
+  lines.push('COORDINATOR NOTES');
+  lines.push(ST.scoutNotes||'');
+  return lines.join('\n');
+}
+
+function copyReport(){
+  let t=buildScoutReportText();
+  navigator.clipboard?.writeText(t).then(()=>toast('Scouting report copied'),()=>alert(t));
+}
+function downloadReport(){ download(`sunday_scout_${ST.opp||'opponent'}.txt`, buildScoutReportText(), 'text/plain'); }
+function printScoutReport(){
+  const w=window.open('', '_blank');
+  if(!w){ toast('Popup blocked. Allow popups to print.', false); return; }
+  w.document.write(`<!doctype html><html><head><title>Sunday Scout</title><style>
+    body{font-family:Arial,sans-serif;color:#111;margin:24px} h2{margin:0 0 4px;font-size:28px} h3{margin:0 0 8px;font-size:14px;text-transform:uppercase;border-bottom:2px solid #111;padding-bottom:4px}.scout-cover{display:flex;justify-content:space-between;gap:16px;border-bottom:4px solid #111;padding-bottom:12px;margin-bottom:16px}.scout-badge{font-weight:800;border:2px solid #111;padding:10px;align-self:flex-start}.g2,.g3{display:grid;grid-template-columns:1fr 1fr;gap:12px}.g3{grid-template-columns:repeat(3,1fr)}.scout-box,.kpi{border:1px solid #999;padding:12px;margin-bottom:12px;break-inside:avoid}.kpi-val{font-size:26px;font-weight:900}.kpi-label{text-transform:uppercase;font-size:10px;color:#555}table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid #999;padding:6px;text-align:left}.trend-line{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid #ddd;padding:5px 0;font-size:12px}.halftime-text{white-space:pre-wrap;border:1px solid #999;padding:10px;min-height:80px}.scout-call-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.scout-call{border:1px solid #ccc;padding:8px}.scout-call b{display:block}@media print{button{display:none}.scout-box{page-break-inside:avoid}}
+  </style></head><body>${buildScoutReportHtml(true)}<script>window.onload=()=>window.print();<\/script></body></html>`);
+  w.document.close();
+}
+
 // ─── REPORTS PAGE ────────────────────────────────────────────
 function renderReports(){
   let all=[...ST.film,...ST.live], live=ST.live;
@@ -1935,8 +2293,6 @@ function buildHalftime(){
 }
 
 function copyHalftime(){ let t=buildHalftime(); navigator.clipboard?.writeText(t).then(()=>toast('Halftime sheet copied'),()=>alert(t)); }
-function copyReport(){ copyHalftime(); }
-function downloadReport(){ download(`scout_${ST.opp}.txt`, buildHalftime(), 'text/plain'); }
 
 // ─── COACH CARD ────────────────────────────────────────────────
 function copyCoachCard(){
@@ -2004,6 +2360,23 @@ function renderSetup(){
   if($('s-fronts'))$('s-fronts').value=ST.defense.fronts||'';
   if($('s-pressures'))$('s-pressures').value=ST.defense.pressures||'';
   if($('s-checks'))$('s-checks').value=ST.defense.checks||'';
+  setCheckedValues('identity', ST.defense.identity || []);
+  if($('s-third-pressure'))$('s-third-pressure').value=ST.defense.thirdPressure||'Medium';
+  if($('s-rz-style'))$('s-rz-style').value=ST.defense.rzStyle||'Match zones';
+  setVal('s-sit-notes', ST.defense.situationalNotes);
+  setVal('s-vs10', ST.defense.personnel?.vs10);
+  setVal('s-vs11', ST.defense.personnel?.vs11);
+  setVal('s-vs12', ST.defense.personnel?.vs12);
+  setVal('s-vsempty', ST.defense.personnel?.vsempty);
+  setVal('s-pairings', ST.defense.pairings);
+  setCheckedValues('weakness', ST.defense.weaknesses || []);
+  setVal('s-staff-dc', ST.defense.staff?.dc);
+  setVal('s-staff-lb', ST.defense.staff?.lb);
+  setVal('s-staff-sec', ST.defense.staff?.sec);
+  setVal('s-staff-qc', ST.defense.staff?.qc);
+  setVal('s-terminology', ST.defense.terminology);
+  setVal('s-self-scout', ST.defense.selfScout);
+  renderDefenseDna();
 
   if($('s-star-on'))$('s-star-on').value=ST.star.on?'yes':'no';
   if($('s-star-name'))$('s-star-name').value=ST.star.name||'';
