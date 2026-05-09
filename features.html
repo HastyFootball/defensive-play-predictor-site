@@ -1,1 +1,307 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Features | Analyst Assist</title><link rel="stylesheet" href="assets/styles.css"></head><body><script src="assets/nav.js"></script><main class="app-shell"><div class="wrap"><div class="page-title"><div><div class="eyebrow">Platform</div><h1 style="margin:0">Features</h1><p class="lead">Everything is organized around how defensive staffs actually work.</p></div><a class="btn gold" href="signup.html">Create account</a></div><div class="grid g3"><div class="card"><h3>Coach dashboard</h3><p class="muted">A central place for teams, opponents, reports, and game-night access.</p></div><div class="card"><h3>Import center</h3><p class="muted">Bring charted data in through CSV preview and simple review screens.</p></div><div class="card"><h3>Analytics board</h3><p class="muted">Formation, personnel, down-distance, and field-zone tendencies.</p></div><div class="card"><h3>Game mode</h3><p class="muted">Large, dark, touch-friendly decision screen for games.</p></div><div class="card"><h3>Scouting reports</h3><p class="muted">Clean printable game-plan summaries for the staff.</p></div><div class="card"><h3>Staff workspace</h3><p class="muted">Role-based collaboration structure for your defensive staff.</p></div></div></div></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="assets/config.js"></script><script src="assets/supabase-app.js"></script><script src="assets/footer.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Features | Analyst Assist</title>
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+:root{--bg:#05070b;--text:#f8fafc;--muted:#94a3b8;--gold:#f5c542;--royal:#0057b8;--green:#34d399;--line:rgba(255,255,255,.1);--mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;--sans:Inter,system-ui,-apple-system,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.6}
+a{color:inherit;text-decoration:none}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:18px 32px;border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(5,7,11,.95);backdrop-filter:blur(12px);z-index:100}
+.nav-brand{font:900 14px var(--mono);letter-spacing:.1em;color:var(--gold)}
+.nav-links{display:flex;gap:6px}
+.nav-links a{padding:8px 14px;border-radius:999px;font:700 13px var(--sans);color:var(--muted);border:1px solid transparent;transition:all .15s}
+.nav-links a:hover{color:var(--text);border-color:var(--line)}
+.nav-cta{background:linear-gradient(135deg,var(--royal),#2d72d9);border-color:#6aa2ff!important;color:#fff!important;padding:8px 18px;border-radius:999px;font:700 13px var(--sans);border:1px solid transparent}
+@media(max-width:640px){.nav-links{display:none}}
+.wrap{max-width:1100px;margin:0 auto;padding:0 32px}
+.hero{padding:72px 0 56px;text-align:center}
+.eyebrow{font:700 12px var(--mono);letter-spacing:.14em;color:var(--gold);text-transform:uppercase;margin-bottom:16px}
+h1{font-size:clamp(36px,6vw,60px);font-weight:900;letter-spacing:-.03em;margin-bottom:16px}
+.lead{color:var(--muted);font-size:18px;max-width:600px;margin:0 auto 32px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:12px;font:700 14px var(--sans);border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--text);cursor:pointer;transition:all .15s}
+.btn:hover{border-color:rgba(245,197,66,.4)}
+.btn-primary{background:linear-gradient(135deg,var(--royal),#2d72d9);border-color:#6aa2ff;color:#fff}
+.divider{border:none;border-top:1px solid var(--line);margin:0}
+.feature-section{padding:60px 0}
+.feature-section:nth-child(even) .feature-inner{flex-direction:row-reverse}
+.feature-inner{display:flex;gap:48px;align-items:center;flex-wrap:wrap}
+.feature-text{flex:1;min-width:280px}
+.feature-visual{flex:1;min-width:280px}
+.section-label{font:700 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+.feature-text h2{font-size:clamp(24px,3.5vw,36px);font-weight:900;letter-spacing:-.03em;margin-bottom:14px}
+.feature-text p{color:var(--muted);font-size:15px;line-height:1.7;margin-bottom:14px}
+.feature-list{list-style:none;display:flex;flex-direction:column;gap:8px;margin-top:16px}
+.feature-list li{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--muted)}
+.feature-list li::before{content:'✓';color:var(--green);font-weight:900;flex-shrink:0;margin-top:1px}
+.mock{background:linear-gradient(180deg,rgba(13,27,52,.94),rgba(7,12,23,.98));border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:20px;font-family:var(--mono)}
+.mock-title{font:800 10px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:14px}
+.mock-pred{font:900 clamp(24px,4vw,36px) var(--mono);letter-spacing:-.03em;margin-bottom:4px}
+.mock-pct{font:900 clamp(18px,3vw,28px) var(--mono);color:var(--gold);margin-bottom:12px}
+.mock-bar{height:8px;background:#080f1a;border-radius:999px;overflow:hidden;margin-bottom:14px}
+.mock-bar-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--royal),var(--gold))}
+.mock-split{display:flex;height:10px;border-radius:999px;overflow:hidden;background:#080f1a;margin-bottom:8px}
+.split-r{background:var(--green)}
+.split-o{background:var(--gold)}
+.split-p{background:var(--royal)}
+.mock-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.tag{border:1px solid;border-radius:999px;padding:4px 10px;font:800 10px var(--mono)}
+.tag-r{color:var(--green);border-color:rgba(52,211,153,.4);background:rgba(52,211,153,.08)}
+.tag-p{color:#60a5fa;border-color:rgba(96,165,250,.4);background:rgba(0,87,184,.08)}
+.tag-w{color:var(--gold);border-color:rgba(245,197,66,.4);background:rgba(245,197,66,.08)}
+.tag-d{color:#fb7185;border-color:rgba(251,113,133,.4);background:rgba(251,113,133,.08)}
+.mock-row{display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.06);padding:7px 0;font-size:13px;color:var(--muted)}
+.mock-row b{color:var(--text)}
+.mock-row span{color:var(--gold);font-weight:700}
+.mock-dn-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px}
+.mock-dn{padding:10px 0;border-radius:8px;font:800 12px var(--mono);text-align:center;border:1px solid rgba(255,255,255,.1);background:rgba(8,18,35,.8);color:var(--muted)}
+.mock-dn.active{border-color:var(--gold);color:var(--text);background:linear-gradient(135deg,rgba(0,87,184,.4),rgba(245,197,66,.12))}
+.mock-tile-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mock-tile{border:1px solid rgba(255,255,255,.1);border-radius:14px;background:linear-gradient(180deg,#12264a,#0a1426);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:16px;text-align:center}
+.mock-tile strong{font:900 clamp(20px,4vw,32px) var(--mono);color:var(--gold)}
+.mock-tile span{font:900 11px var(--mono);text-transform:uppercase;color:var(--muted)}
+.note{border-left:3px solid var(--gold);background:rgba(245,197,66,.07);border-radius:8px;padding:10px 14px;font:12px var(--mono);color:var(--muted);line-height:1.6;margin-top:10px}
+.rec-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px}
+.rec{background:#07101e;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px}
+.rec strong{display:block;font:800 10px var(--mono);color:var(--text);margin-bottom:4px}
+.rec p{font-size:11px;color:var(--muted);line-height:1.5}
+.cta-section{padding:60px 0 80px;text-align:center}
+.cta-card{background:linear-gradient(135deg,rgba(0,87,184,.25),rgba(9,16,29,.96) 60%,rgba(245,197,66,.07));border:1px solid rgba(245,197,66,.3);border-radius:24px;padding:48px 32px}
+.cta-card h2{font-size:clamp(24px,4vw,38px);font-weight:900;letter-spacing:-.03em;margin-bottom:12px}
+.cta-card p{color:var(--muted);margin-bottom:24px}
+.btn-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+footer{border-top:1px solid var(--line);padding:24px 32px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;font:13px var(--sans);color:var(--muted)}
+footer a{color:var(--muted);margin-left:16px}
+footer a:hover{color:var(--text)}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand">ANALYST ASSIST</div>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="how-it-works.html">How It Works</a>
+    <a href="login.html">Login</a>
+  </div>
+  <a href="signup.html" class="nav-cta">Create account →</a>
+</nav>
+
+<div class="wrap">
+
+  <div class="hero">
+    <div class="eyebrow">Platform features</div>
+    <h1>Everything your staff needs<br>from prep to kickoff.</h1>
+    <p class="lead">Organized around how defensive staffs actually work — not how software people think they work.</p>
+    <a href="signup.html" class="btn btn-primary">Create account →</a>
+  </div>
+
+</div>
+
+<hr class="divider">
+
+<!-- FEATURE 1: Prediction Engine -->
+<div class="wrap">
+<section class="feature-section">
+  <div class="feature-inner">
+    <div class="feature-text">
+      <div class="section-label">Prediction engine</div>
+      <h2>A tendency board that thinks like a defensive coordinator.</h2>
+      <p>Every active concept gets a score built from your film data, live game plays, situational patterns, sequence history, and star-player impact. Scores normalize into percentages your staff can act on immediately.</p>
+      <ul class="feature-list">
+        <li>Exact situation matching — same down, distance, and field zone carry the most weight</li>
+        <li>Live game data builds influence as the game goes on</li>
+        <li>Sequence awareness — what does this offense run after that play?</li>
+        <li>Confidence label tells you how much to trust the board</li>
+        <li>Defensive answer board uses your own system — fronts, coverages, pressures you actually carry</li>
+      </ul>
+    </div>
+    <div class="feature-visual">
+      <div class="mock">
+        <div class="mock-title">#1 Prediction · Medium confidence</div>
+        <div class="mock-pred">Mesh Concept</div>
+        <div class="mock-pct">74%</div>
+        <div class="mock-bar"><div class="mock-bar-fill" style="width:74%"></div></div>
+        <div class="mock-tags">
+          <span class="tag tag-p">PASS HEAVY</span>
+          <span class="tag tag-d">SHOT ALERT</span>
+          <span class="tag tag-w">SCREEN/RPO</span>
+        </div>
+        <div class="mock-row"><b>Run / Pass / RPO</b><span>22% / 61% / 17%</span></div>
+        <div class="mock-row"><b>#2 Quick Game</b><span>41%</span></div>
+        <div class="mock-row"><b>#3 Play Action</b><span>28%</span></div>
+        <div class="note">34 film plays · 18 live plays · live weight 55%</div>
+      </div>
+    </div>
+  </div>
+</section>
+</div>
+
+<hr class="divider">
+
+<!-- FEATURE 2: Box + Sideline Sync -->
+<div class="wrap">
+<section class="feature-section">
+  <div class="feature-inner">
+    <div class="feature-text">
+      <div class="section-label">Box + sideline sync</div>
+      <h2>Box coach logs it. Sideline sees it. Instantly.</h2>
+      <p>Box Mode gives the press box coach full detail — situation selectors, post-play logging, analytics, and reports. Sideline Mode strips it down to what the field coach needs in three seconds between plays.</p>
+      <ul class="feature-list">
+        <li>Change the down or distance in the box — sideline updates in under a second</li>
+        <li>Sideline coach can also tap down/distance directly if needed</li>
+        <li>Tap Run, Pass, RPO, or Screen on the sideline to log accountability</li>
+        <li>Works on any device — phone, tablet, laptop — no app install</li>
+        <li>Falls back to local mode when stadium WiFi is bad, syncs when signal returns</li>
+      </ul>
+    </div>
+    <div class="feature-visual">
+      <div class="mock">
+        <div class="mock-title">Sideline mode · 3rd &amp; 7</div>
+        <div class="mock-dn-row">
+          <div class="mock-dn">1st</div>
+          <div class="mock-dn">2nd</div>
+          <div class="mock-dn active">3rd</div>
+          <div class="mock-dn">4th</div>
+        </div>
+        <div class="mock-tile-grid">
+          <div class="mock-tile"><strong>22%</strong><span>Run</span></div>
+          <div class="mock-tile"><strong>61%</strong><span>Pass</span></div>
+          <div class="mock-tile"><strong>17%</strong><span>RPO</span></div>
+          <div class="mock-tile"><strong>12%</strong><span>Screen</span></div>
+        </div>
+        <div class="note" style="margin-top:8px">PASS HEAVY · Tap a percentage to log what actually happened</div>
+      </div>
+    </div>
+  </div>
+</section>
+</div>
+
+<hr class="divider">
+
+<!-- FEATURE 3: Film Import -->
+<div class="wrap">
+<section class="feature-section">
+  <div class="feature-inner">
+    <div class="feature-text">
+      <div class="section-label">Film import</div>
+      <h2>Your Hudl chart. Straight into the engine.</h2>
+      <p>Drop any CSV export from Hudl, Excel, or your own charting system. The app auto-detects columns in any order and lets you fix the mapping before anything gets imported. No reformatting required.</p>
+      <ul class="feature-list">
+        <li>Auto-detects down, distance, formation, concept, personnel, and more</li>
+        <li>Column mapping corrections before import — nothing locked in until you confirm</li>
+        <li>Save mapping templates per opponent so future imports take seconds</li>
+        <li>Manual film entry if you prefer to enter plays one at a time</li>
+        <li>Import warnings flag skipped rows so nothing is lost silently</li>
+      </ul>
+    </div>
+    <div class="feature-visual">
+      <div class="mock">
+        <div class="mock-title">Import health</div>
+        <div class="mock-row"><b>Required fields</b><span style="color:var(--green)">✓ All mapped</span></div>
+        <div class="mock-row"><b>Importable plays</b><span>87 found</span></div>
+        <div class="mock-row"><b>Skipped rows</b><span style="color:var(--gold)">2 need attention</span></div>
+        <div class="mock-row"><b>Template</b><span>Riverside Hudl</span></div>
+        <div class="note" style="margin-top:10px">Preview shows first 25 rows before you confirm. Concept column auto-matched to your active concepts list.</div>
+      </div>
+    </div>
+  </div>
+</section>
+</div>
+
+<hr class="divider">
+
+<!-- FEATURE 4: Defensive Answer Board -->
+<div class="wrap">
+<section class="feature-section">
+  <div class="feature-inner">
+    <div class="feature-text">
+      <div class="section-label">Defensive answer board</div>
+      <h2>Recommendations built from your system, not a generic playbook.</h2>
+      <p>Set up your defensive system once in Setup — base defense, run fit, coverage family, pressure style, fronts, and checks. The answer board uses your actual calls, not suggestions from a playbook your staff doesn't run.</p>
+      <ul class="feature-list">
+        <li>Front and fit recommendation based on run/pass lean and top concept</li>
+        <li>Coverage check suggestion based on shot alert or screen/RPO tendency</li>
+        <li>Pressure recommendation with a reminder that staff rules override the board</li>
+        <li>Preset systems for 4-2-5, 3-3-5, 4-3, and 3-4</li>
+      </ul>
+    </div>
+    <div class="feature-visual">
+      <div class="mock">
+        <div class="mock-title">Defensive answer board · 4-2-5 · Spill · Quarters</div>
+        <div class="rec-grid">
+          <div class="rec"><strong>Front / Fit</strong><p>Over: balanced; play rules.</p></div>
+          <div class="rec"><strong>Coverage</strong><p>Sky: disguise, cap verticals, rob sticks.</p></div>
+          <div class="rec"><strong>Pressure</strong><p>Field fire: sim pressure, contain rush.</p></div>
+        </div>
+        <div class="note" style="margin-top:10px">Staff rules should override this board. Set your system in Setup first.</div>
+      </div>
+    </div>
+  </div>
+</section>
+</div>
+
+<hr class="divider">
+
+<!-- FEATURE 5: Star Player -->
+<div class="wrap">
+<section class="feature-section">
+  <div class="feature-inner">
+    <div class="feature-text">
+      <div class="section-label">Star player factor</div>
+      <h2>Know how their best player changes what they run.</h2>
+      <p>Chart whether a key offensive player is on or off the field. The engine calculates how their presence actually shifts concept usage, run rate, screen and RPO tendency, red zone involvement, and third-and-long behavior — from your data, not guesswork.</p>
+      <ul class="feature-list">
+        <li>ON vs OFF split calculated from real film and live play history</li>
+        <li>Touch concepts — mark which plays are designed for that player</li>
+        <li>Confidence shrinks automatically when sample size is too small</li>
+        <li>Alert shown on the sideline board when the star is on or off the field</li>
+        <li>Supports RB, QB, WR, TE, and Athlete positions</li>
+      </ul>
+    </div>
+    <div class="feature-visual">
+      <div class="mock">
+        <div class="mock-title">Star player report · #5 Smith · RB</div>
+        <div class="mock-row"><b>Sample</b><span>24 ON / 18 OFF · 90% trust</span></div>
+        <div class="mock-row"><b>Touch rate</b><span>ON 68% vs OFF 31% (+37%)</span></div>
+        <div class="mock-row"><b>Run rate</b><span>ON 74% vs OFF 52% (+22%)</span></div>
+        <div class="mock-row"><b>Top ON concept</b><span>Inside Zone</span></div>
+        <div class="mock-row"><b>Top OFF concept</b><span>Medium Pass</span></div>
+        <div class="note" style="margin-top:10px">#5 Smith ON: boosts touch concepts by 37% · RZ touch +28%</div>
+      </div>
+    </div>
+  </div>
+</section>
+</div>
+
+<hr class="divider">
+
+<!-- CTA -->
+<div class="wrap">
+<section class="cta-section">
+  <div class="cta-card">
+    <h2>Ready to see it in action?</h2>
+    <p>Create your coach account and load the demo game in under two minutes.</p>
+    <div class="btn-row">
+      <a href="signup.html" class="btn btn-primary">Create account →</a>
+      <a href="how-it-works.html" class="btn">How it works</a>
+    </div>
+  </div>
+</section>
+</div>
+
+<footer>
+  <span>© 2026 Analyst Assist</span>
+  <div>
+    <a href="index.html">Home</a>
+    <a href="how-it-works.html">How It Works</a>
+    <a href="privacy.html">Privacy</a>
+    <a href="terms.html">Terms</a>
+  </div>
+</footer>
+
+</body>
+</html>
