@@ -1,140 +1,175 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>How It Works | Analyst Assist</title>
-  <link rel="stylesheet" href="assets/styles.css">
-  <style>
-    :root{--bg:#05070b;--card:#0b1220;--card2:#101827;--line:rgba(255,255,255,.12);--text:#f8fafc;--muted:#94a3b8;--gold:#f5c542;--green:#22c55e;--blue:#38bdf8;--purple:#a855f7;--red:#fb7185;--mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;--sans:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif}
-    body{background:radial-gradient(circle at top left,rgba(245,197,66,.14),transparent 32%),linear-gradient(180deg,#05070b,#0a1020);color:var(--text);font-family:var(--sans);margin:0}
-    .hiw-wrap{max-width:1160px;margin:0 auto;padding:36px 18px 72px}
-    .hiw-nav{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap}
-    .hiw-brand{font:900 13px var(--mono);letter-spacing:.1em;color:var(--gold)}
-    .hiw-links{display:flex;gap:8px;flex-wrap:wrap}.hiw-links a{color:var(--text);text-decoration:none;border:1px solid var(--line);padding:9px 12px;border-radius:999px;background:rgba(255,255,255,.04);font-weight:800;font-size:12px}.hiw-links a:hover{border-color:rgba(245,197,66,.5)}
-    .hero{border:1px solid rgba(245,197,66,.25);background:linear-gradient(135deg,rgba(245,197,66,.12),rgba(56,189,248,.07)),rgba(11,18,32,.86);border-radius:28px;padding:30px;box-shadow:0 20px 80px rgba(0,0,0,.28)}
-    .eyebrow{font:900 12px var(--mono);letter-spacing:.12em;color:var(--gold);text-transform:uppercase}.hero h1{font-size:clamp(34px,6vw,64px);line-height:.96;margin:10px 0 14px}.lead{color:#cbd5e1;font-size:18px;line-height:1.6;max-width:850px}.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;margin-top:18px}.card{grid-column:span 12;border:1px solid var(--line);border-radius:22px;background:rgba(11,18,32,.82);padding:20px}.half{grid-column:span 6}.third{grid-column:span 4}.two{grid-column:span 8}.card h2,.card h3{margin:0 0 10px}.muted{color:var(--muted);line-height:1.55}.steps{counter-reset:step}.step{display:grid;grid-template-columns:42px 1fr;gap:14px;padding:14px 0;border-top:1px solid var(--line)}.step:first-child{border-top:0}.num{width:34px;height:34px;border-radius:12px;background:rgba(245,197,66,.14);border:1px solid rgba(245,197,66,.35);display:grid;place-items:center;color:var(--gold);font:900 13px var(--mono)}
-    .formula{background:#05070b;border:1px solid rgba(148,163,184,.22);border-radius:18px;padding:16px;margin:12px 0;font-family:var(--mono);font-size:13px;color:#e2e8f0;overflow:auto}.formula b{color:var(--gold)}.tag-row{display:flex;gap:8px;flex-wrap:wrap}.tag{border:1px solid var(--line);border-radius:999px;padding:7px 10px;font:800 11px var(--mono);background:rgba(255,255,255,.04)}.run{color:var(--green)}.pass{color:var(--blue)}.rpo{color:var(--gold)}.screen{color:var(--purple)}.warn{color:var(--red)}
-    table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px solid var(--line);padding:10px 8px;text-align:left;vertical-align:top}th{color:var(--gold);font:900 12px var(--mono);text-transform:uppercase}td{color:#dbeafe}.callout{border-left:4px solid var(--gold);padding:12px 14px;background:rgba(245,197,66,.08);border-radius:12px;color:#e2e8f0}.small{font-size:12px;color:var(--muted)}
-    @media(max-width:800px){.half,.third,.two{grid-column:span 12}.hero{padding:22px}.hiw-wrap{padding-top:20px}}
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>How It Works | Analyst Assist</title>
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+:root{--bg:#05070b;--card:#0b1220;--card2:#101827;--line:rgba(255,255,255,.12);--text:#f8fafc;--muted:#94a3b8;--gold:#f5c542;--green:#22c55e;--blue:#38bdf8;--purple:#a855f7;--red:#fb7185;--mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;--sans:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif}
+body{background:radial-gradient(circle at top left,rgba(245,197,66,.14),transparent 32%),linear-gradient(180deg,#05070b,#0a1020);color:var(--text);font-family:var(--sans);margin:0}
+.hiw-wrap{max-width:1160px;margin:0 auto;padding:36px 18px 72px}
+.hiw-nav{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap}
+.hiw-brand{font:900 13px var(--mono);letter-spacing:.1em;color:var(--gold)}
+.hiw-links{display:flex;gap:8px;flex-wrap:wrap}.hiw-links a{color:var(--text);text-decoration:none;border:1px solid var(--line);padding:9px 12px;border-radius:999px;background:rgba(255,255,255,.04);font-weight:800;font-size:12px}.hiw-links a:hover{border-color:rgba(245,197,66,.5)}
+.hero{border:1px solid rgba(245,197,66,.25);background:linear-gradient(135deg,rgba(245,197,66,.12),rgba(56,189,248,.07)),rgba(11,18,32,.86);border-radius:28px;padding:30px;box-shadow:0 20px 80px rgba(0,0,0,.28)}
+.eyebrow{font:900 12px var(--mono);letter-spacing:.12em;color:var(--gold);text-transform:uppercase}.hero h1{font-size:clamp(34px,6vw,64px);line-height:.96;margin:10px 0 14px}.lead{color:#cbd5e1;font-size:18px;line-height:1.6;max-width:850px}.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;margin-top:18px}.card{grid-column:span 12;border:1px solid var(--line);border-radius:22px;background:rgba(11,18,32,.82);padding:20px}.half{grid-column:span 6}.third{grid-column:span 4}.two{grid-column:span 8}.card h2,.card h3{margin:0 0 10px}.muted{color:var(--muted);line-height:1.55}.steps{counter-reset:step}.step{display:grid;grid-template-columns:42px 1fr;gap:14px;padding:14px 0;border-top:1px solid var(--line)}.step:first-child{border-top:0}.num{width:34px;height:34px;border-radius:12px;background:rgba(245,197,66,.14);border:1px solid rgba(245,197,66,.35);display:grid;place-items:center;color:var(--gold);font:900 13px var(--mono)}
+.explain-block{background:#05070b;border:1px solid rgba(148,163,184,.18);border-radius:14px;padding:14px 16px;margin:12px 0;font-size:14px;color:#e2e8f0;line-height:1.6}
+.explain-block strong{color:var(--gold);display:block;margin-bottom:4px;font:700 11px var(--mono);text-transform:uppercase;letter-spacing:.08em}
+.tag-row{display:flex;gap:8px;flex-wrap:wrap}.tag{border:1px solid var(--line);border-radius:999px;padding:7px 10px;font:800 11px var(--mono);background:rgba(255,255,255,.04)}.run{color:var(--green)}.pass{color:var(--blue)}.rpo{color:var(--gold)}.screen{color:var(--purple)}.warn{color:var(--red)}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px solid var(--line);padding:10px 8px;text-align:left;vertical-align:top}th{color:var(--gold);font:900 12px var(--mono);text-transform:uppercase}td{color:#dbeafe}.callout{border-left:4px solid var(--gold);padding:12px 14px;background:rgba(245,197,66,.08);border-radius:12px;color:#e2e8f0}.small{font-size:12px;color:var(--muted)}
+@media(max-width:800px){.half,.third,.two{grid-column:span 12}.hero{padding:22px}.hiw-wrap{padding-top:20px}}
+</style>
 </head>
 <body>
-  <main class="hiw-wrap">
-    <nav class="hiw-nav">
-      <div class="hiw-brand">ANALYST ASSIST · HOW IT WORKS</div>
-      <div class="hiw-links">
-        <a href="coach-console.html">Coach Console</a>
-        <a href="coach-console.html">Dashboard</a>
-        <a href="coach-console.html#prep">Prep Center</a>
-        <a href="coach-console.html#reports">Reports</a>
-      </div>
-    </nav>
+<main class="hiw-wrap">
+<nav class="hiw-nav">
+  <div class="hiw-brand">ANALYST ASSIST · HOW IT WORKS</div>
+  <div class="hiw-links">
+    <a href="coach-console.html">Coach Console</a>
+    <a href="coach-console.html">Dashboard</a>
+    <a href="coach-console.html#prep">Prep Center</a>
+    <a href="coach-console.html#reports">Reports</a>
+  </div>
+</nav>
 
-    <section class="hero">
-      <div class="eyebrow">AI Analyst, Built Like a Coach Tool</div>
-      <h1>How Analyst Assist works</h1>
-      <p class="lead">The site turns opponent film data and live game charting into a fast tendency board. It does not claim to know the next play with certainty. It ranks the most likely offensive answers based on situation, opponent history, live adjustments, sequence behavior, and star-player impact.</p>
-      <div class="tag-row">
-        <span class="tag run">Run %</span><span class="tag pass">Pass %</span><span class="tag rpo">RPO %</span><span class="tag screen">Screen %</span><span class="tag warn">Alerts</span>
-      </div>
-    </section>
+<section class="hero">
+  <div class="eyebrow">Built Like a Coach Tool</div>
+  <h1>How Analyst Assist works</h1>
+  <p class="lead">Analyst Assist turns opponent film data and live game charting into a fast tendency board. It does not claim to know the next play with certainty. It ranks the most likely offensive answers based on situation, opponent history, live adjustments, sequence behavior, and star-player impact.</p>
+  <div class="tag-row">
+    <span class="tag run">Run %</span><span class="tag pass">Pass %</span><span class="tag rpo">RPO %</span><span class="tag screen">Screen %</span><span class="tag warn">Alerts</span>
+  </div>
+</section>
 
-    <section class="grid">
-      <article class="card two">
-        <h2>Coach workflow</h2>
-        <div class="steps">
-          <div class="step"><div class="num">1</div><div><h3>Load opponent data</h3><p class="muted">Import charted film or manually enter plays with down, distance, field zone, personnel, formation, concept, play type, result, and optional star-player status.</p></div></div>
-          <div class="step"><div class="num">2</div><div><h3>Select the current situation</h3><p class="muted">During prep or live game mode, choose down, distance, zone, personnel, formation family, hash, tempo, and star status.</p></div></div>
-          <div class="step"><div class="num">3</div><div><h3>The engine scores every active concept</h3><p class="muted">Each possible call gets a weighted score from matching film, matching live-game plays, general baseline tendency, sequence boost, and star-player adjustment.</p></div></div>
-          <div class="step"><div class="num">4</div><div><h3>Scores become percentages</h3><p class="muted">The system normalizes all concept scores so the board can show top plays plus overall Run, Pass, RPO, and Screen probability.</p></div></div>
-          <div class="step"><div class="num">5</div><div><h3>Coaches log what actually happened</h3><p class="muted">The box coach can log detail. The sideline coach can simply tap Run %, Pass %, RPO %, or Screen % to record accountability and keep the board synced.</p></div></div>
-        </div>
-      </article>
+<section class="grid">
 
-      <aside class="card third">
-        <h2>What the prediction is</h2>
-        <p class="muted">A weighted tendency model. It is best used as a coach alert system: “what should we be ready for right now?”</p>
-        <div class="callout"><strong>Best use:</strong> identify tendency, alert the sideline, and compare film tendency vs. live tendency.</div>
-        <p class="small">Low sample sizes should be treated as alerts, not certainties.</p>
-      </aside>
+  <article class="card two">
+    <h2>Coach workflow</h2>
+    <div class="steps">
+      <div class="step"><div class="num">1</div><div><h3>Load opponent data</h3><p class="muted">Import charted film or manually enter plays with down, distance, field zone, personnel, formation, concept, play type, result, and optional star-player status.</p></div></div>
+      <div class="step"><div class="num">2</div><div><h3>Select the current situation</h3><p class="muted">During prep or live game mode, choose down, distance, zone, personnel, formation family, hash, tempo, and star status.</p></div></div>
+      <div class="step"><div class="num">3</div><div><h3>The engine scores every active concept</h3><p class="muted">Each possible call gets a weighted score from matching film, matching live-game plays, general baseline tendency, sequence patterns, and star-player adjustments.</p></div></div>
+      <div class="step"><div class="num">4</div><div><h3>Scores become percentages</h3><p class="muted">The system normalizes all concept scores so the board can display top plays plus overall Run, Pass, RPO, and Screen probability.</p></div></div>
+      <div class="step"><div class="num">5</div><div><h3>Coaches log what actually happened</h3><p class="muted">The box coach can log full detail. The sideline coach simply taps Run %, Pass %, RPO %, or Screen % to record accountability and keep the board synced.</p></div></div>
+    </div>
+  </article>
 
-      <article class="card half">
-        <h2>Main scoring formula</h2>
-        <p class="muted">For each offensive concept, the engine blends baseline football logic, film matches, live-game matches, sequence history, and star-player adjustments.</p>
-        <div class="formula"><b>concept_score</b> = weighted_data_score + sequence_boost + star_adjustment</div>
-        <div class="formula">If no data exists:<br><b>concept_score</b> = baseline_bias</div>
-        <div class="formula">If only film exists:<br><b>concept_score</b> = film_match × 0.74 + baseline_bias × 0.26</div>
-        <div class="formula">If only live data exists:<br><b>concept_score</b> = live_match × 0.74 + baseline_bias × 0.26</div>
-        <div class="formula">If film and live data both exist:<br><b>concept_score</b> = film_weight × (film_match × 0.67 + baseline × 0.33)<br>+ live_weight × (live_match × 0.70 + baseline × 0.30)</div>
-      </article>
+  <aside class="card third">
+    <h2>What the prediction is</h2>
+    <p class="muted">A weighted tendency model. It is best used as a coach alert system: "what should we be ready for right now?"</p>
+    <div class="callout"><strong>Best use:</strong> identify tendency, alert the sideline, and compare film tendency vs. live tendency.</div>
+    <p class="small">Low sample sizes should be treated as alerts, not certainties.</p>
+  </aside>
 
-      <article class="card half">
-        <h2>Situation match formula</h2>
-        <p class="muted">The model gives the most credit to plays that match the exact game situation, then backs off to broader tendency buckets.</p>
-        <div class="formula"><b>match_score</b> = exact_situation_rate × 0.28<br>+ down_distance_rate × 0.22<br>+ personnel_rate × 0.13<br>+ formation_rate × 0.13<br>+ phase_rate × 0.09<br>+ overall_rate × 0.15</div>
-        <table>
-          <tr><th>Match type</th><th>Meaning</th></tr>
-          <tr><td>Exact situation</td><td>Same down, distance bucket, and field zone.</td></tr>
-          <tr><td>Down-distance</td><td>Same down and distance bucket.</td></tr>
-          <tr><td>Personnel</td><td>Same offensive personnel grouping.</td></tr>
-          <tr><td>Formation</td><td>Same formation or formation family.</td></tr>
-          <tr><td>Phase</td><td>Same game phase, such as normal, two-minute, red zone, or backed-up.</td></tr>
-          <tr><td>Overall</td><td>Opponent’s total concept rate across the dataset.</td></tr>
-        </table>
-      </article>
+  <article class="card half">
+    <h2>How concepts are scored</h2>
+    <p class="muted">For each possible offensive concept, the engine blends multiple layers of information into a single score.</p>
+    <div class="explain-block">
+      <strong>Film data</strong>
+      How often the opponent has run this concept in similar situations across your scouting film. The more closely the film situation matches the current game situation, the more weight it carries.
+    </div>
+    <div class="explain-block">
+      <strong>Live game data</strong>
+      What the opponent has actually run so far in this game. Live data becomes more influential as the game goes on and a larger in-game sample builds up.
+    </div>
+    <div class="explain-block">
+      <strong>Baseline football logic</strong>
+      General situational tendencies — for example, most offenses pass more on 3rd and long. This backstops the model when data is limited.
+    </div>
+    <div class="explain-block">
+      <strong>Sequence and star adjustments</strong>
+      Recent play sequence patterns and star-player on/off tendencies can shift the final score up or down for specific concepts.
+    </div>
+  </article>
 
-      <article class="card half">
-        <h2>Percentage formula</h2>
-        <p class="muted">After every concept is scored, the scores are converted into percentages by dividing each score by the total score of all active concepts.</p>
-        <div class="formula"><b>concept_percentage</b> = concept_score ÷ sum(all_concept_scores)</div>
-        <div class="formula"><b>Run %</b> = sum(percentages where type = Run)<br><b>Pass %</b> = sum(percentages where type = Pass)<br><b>RPO %</b> = sum(percentages where type = RPO)<br><b>Screen %</b> = sum(percentages where type = Screen)</div>
-      </article>
+  <article class="card half">
+    <h2>How situation matching works</h2>
+    <p class="muted">Not all film plays are equally relevant. The engine gives the most credit to plays that closely match the current situation, then considers broader tendency buckets as backup.</p>
+    <div class="explain-block">
+      <strong>Exact situation match</strong>
+      Plays with the same down, distance bucket, and field zone as right now. These carry the most weight.
+    </div>
+    <div class="explain-block">
+      <strong>Down and distance match</strong>
+      Plays with the same down and distance category, regardless of field position.
+    </div>
+    <div class="explain-block">
+      <strong>Personnel and formation match</strong>
+      Plays run from the same personnel grouping or formation family.
+    </div>
+    <div class="explain-block">
+      <strong>Game phase and overall rate</strong>
+      Broader patterns like red zone, two-minute, or backed-up sequences, plus the opponent's general tendency across the entire dataset.
+    </div>
+  </article>
 
-      <article class="card half">
-        <h2>Live-game weighting</h2>
-        <p class="muted">Live game data becomes more important as more plays are logged. Early in the game, film study still carries more of the model. As the opponent reveals its plan, live tendency gets more influence.</p>
-        <div class="formula"><b>film_weight</b> = 1 − live_weight</div>
-        <div class="formula"><b>live_weight</b> increases as live logged plays increase</div>
-        <div class="callout">Example: after only a few plays, the model should not overreact. After a larger live sample, the live call sheet should start carrying the prediction.</div>
-      </article>
+  <article class="card half">
+    <h2>How percentages are calculated</h2>
+    <p class="muted">After every concept is scored, the scores are converted to percentages by comparing each concept's score against the total score of all active concepts combined. The board then groups those percentages into Run, Pass, RPO, and Screen splits.</p>
+    <div class="callout">The percentages reflect relative likelihood — a concept at 40% is roughly twice as likely as one at 20%, based on the available data.</div>
+  </article>
 
-      <article class="card half">
-        <h2>Sequence boost</h2>
-        <p class="muted">The engine looks at what the opponent tends to call after the last logged concept or after the last play type bucket.</p>
-        <div class="formula"><b>sequence_boost</b> = exact_previous_concept_next_rate × 0.16 × confidence<br>+ previous_bucket_next_rate × 0.09 × confidence</div>
-        <p class="small">Confidence rises as the number of matching sequence samples rises.</p>
-      </article>
+  <article class="card half">
+    <h2>Live-game weighting</h2>
+    <p class="muted">Live game data becomes more important as more plays are logged. Early in the game, film study still carries most of the model. As the opponent reveals its plan, live tendency gets more influence.</p>
+    <div class="explain-block">
+      <strong>Early game</strong>
+      Film data drives most of the prediction. The model has not yet seen enough live plays to shift significantly.
+    </div>
+    <div class="explain-block">
+      <strong>Mid and late game</strong>
+      Live tendency carries progressively more weight. If the opponent is running something unexpected, the board will reflect it faster.
+    </div>
+    <div class="callout">You can also manually set the live weight in Prep Center if you want to trust film more or lean on live data earlier.</div>
+  </article>
 
-      <article class="card half">
-        <h2>Star-player adjustment</h2>
-        <p class="muted">If you chart whether a key player is on or off the field, the model can adjust concepts that depend on that player.</p>
-        <div class="formula"><b>star_adjustment</b> = touch_delta × 0.26<br>+ run_delta × 0.12<br>+ screen_rpo_delta × 0.10<br>+ red_zone_touch_delta × 0.16<br>+ third_long_touch_delta × 0.20</div>
-        <p class="small">If the star is OFF, the adjustment is reversed and reduced. If there are not enough ON/OFF samples, the model shows a low-confidence alert instead of forcing a strong adjustment.</p>
-      </article>
+  <article class="card half">
+    <h2>Sequence awareness</h2>
+    <p class="muted">The engine looks at what the opponent tends to call after the last logged concept or play type. If an offense consistently follows a certain play with a specific call, that pattern gets factored into the current prediction.</p>
+    <div class="callout">Sequence patterns only influence the score meaningfully once enough play-after-play samples exist. Early in a game, they carry limited weight.</div>
+  </article>
 
-      <article class="card third">
-        <h2>Confidence labels</h2>
-        <table>
-          <tr><th>Label</th><th>Rule of thumb</th></tr>
-          <tr><td>High</td><td>20+ samples, strong top probability, clear lead over second choice.</td></tr>
-          <tr><td>Medium</td><td>8+ samples, usable top probability, some separation.</td></tr>
-          <tr><td>Low</td><td>Small sample, balanced distribution, or weak separation.</td></tr>
-        </table>
-      </article>
+  <article class="card half">
+    <h2>Star-player adjustment</h2>
+    <p class="muted">If you chart whether a key offensive player is on or off the field, the engine adjusts concept likelihood based on how that player's presence has historically changed the offense's behavior.</p>
+    <div class="explain-block">
+      <strong>Star ON field</strong>
+      Concepts that skew toward that player's usage — designed touches, target concepts, red zone involvement — get a positive adjustment.
+    </div>
+    <div class="explain-block">
+      <strong>Star OFF field</strong>
+      Those same concept adjustments are reversed, reflecting that the offense may lean on different personnel or play types.
+    </div>
+    <p class="small">If there are not enough ON/OFF samples, the system shows a low-confidence alert instead of forcing a strong adjustment.</p>
+  </article>
 
-      <article class="card third">
-        <h2>Alerts</h2>
-        <p class="muted">The board creates coach alerts from the percentages and top concepts.</p>
-        <div class="tag-row"><span class="tag run">RUN HEAVY</span><span class="tag pass">PASS HEAVY</span><span class="tag rpo">SCREEN/RPO</span><span class="tag warn">SHOT ALERT</span></div>
-      </article>
+  <article class="card third">
+    <h2>Confidence labels</h2>
+    <table>
+      <tr><th>Label</th><th>Rule of thumb</th></tr>
+      <tr><td>High</td><td>Strong sample size, clear top probability, meaningful separation from second choice.</td></tr>
+      <tr><td>Medium</td><td>Usable sample, reasonable top probability, some separation.</td></tr>
+      <tr><td>Low</td><td>Small sample, balanced distribution, or weak separation between top concepts.</td></tr>
+    </table>
+  </article>
 
-      <article class="card third">
-        <h2>Sideline mode</h2>
-        <p class="muted">Sideline mode is intentionally simpler: see the split, see the alert, tap the actual play type, and keep moving.</p>
-        <div class="formula">Tap <b>Run %</b>, <b>Pass %</b>, <b>RPO %</b>, or <b>Screen %</b> = log accountability for that play type</div>
-      </article>
-    </section>
-  </main>
+  <article class="card third">
+    <h2>Alerts</h2>
+    <p class="muted">The board generates coach alerts automatically based on the current percentages and top-ranked concepts.</p>
+    <div class="tag-row"><span class="tag run">RUN HEAVY</span><span class="tag pass">PASS HEAVY</span><span class="tag rpo">SCREEN/RPO</span><span class="tag warn">SHOT ALERT</span></div>
+  </article>
+
+  <article class="card third">
+    <h2>Sideline mode</h2>
+    <p class="muted">Sideline mode is intentionally simpler: see the split, see the alert, tap the actual play type, and keep moving. No setup required during the game.</p>
+    <div class="explain-block">
+      <strong>How to log a play on the sideline</strong>
+      Tap Run %, Pass %, RPO %, or Screen % after the play to record what the offense actually did. The board stays synced with the box automatically.
+    </div>
+  </article>
+
+</section>
+</main>
 </body>
 </html>
