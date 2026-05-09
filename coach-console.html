@@ -1751,7 +1751,7 @@ function renderScoutReport(){
   let all=[...ST.film,...ST.live], el=$('scoutReport'); if(!el)return;
   if(!all.length){ el.innerHTML='<div class="empty-state">Import film to generate a scouting report.</div>'; return; }
   let preds=computePreds(), sp=splitFromData(all);
-  let top3=preds.slice(0,3).map(p=>`${p.name} $(Math.round(p.pct*100),1)%`).join(' · ');
+  let top3=preds.slice(0,3).map(p=>`${p.name} ${Math.round(p.pct*100)}%`).join(' · ');
   let thirdLong=all.filter(p=>p.down==='3'&&['long','xlong'].includes(p.dist));
   let rz=all.filter(p=>['rz','gl'].includes(p.zone));
   let th=thirdLong.length?topEntry(countBy(thirdLong,'concept')):null;
