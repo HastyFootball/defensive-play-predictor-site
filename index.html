@@ -1,7 +1,273 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Analyst Assist | Football Tendency Analytics</title><link rel="stylesheet" href="assets/styles.css"></head><body><script src="assets/nav.js"></script>
-<section class="hero"><div class="wrap grid g2"><div><div class="badge">Football tendency analytics · coach-first tendency analysis</div><h1>Know the tendency <em>before the snap.</em></h1><p class="lead">Analyst Assist turns charted opponent data, CSV exports, and live game entries into fast tendency answers your staff can use on the sideline.</p><div class="actions"><a class="btn gold" href="signup.html">Create coach account →</a><a class="btn" href="features.html">See what it does</a><a class="btn" href="login.html">Coach login</a></div><p class="small muted">Built beside your existing film workflow — not as another place to store video.</p></div><div class="card mock"><div class="mock-title">Live defensive answer board</div><div class="pred"><div class="rank">Top Prediction</div><div class="play">Mesh Concept</div><div class="pct">74%</div><div class="bar"><div class="fill"></div></div></div><div class="mini-grid"><div class="mini"><b>52</b><span>plays logged</span></div><div class="mini"><b>68%</b><span>pass rate</span></div><div class="mini"><b>3s</b><span>update time</span></div></div><p class="notice" style="margin-top:14px">Simple enough for Friday night. Detailed enough for Sunday film review.</p></div></div></section>
-<section class="section"><div class="wrap"><div class="eyebrow">The role</div><h2>Not another film library. <em>Your decision layer.</em></h2><div class="grid g3"><div class="card feature"><div class="icon">📊</div><div><h3>Charted data in</h3><p class="muted">Use opponent chart data, CSV exports, or manual entries. Keep your video workflow where it already lives.</p></div></div><div class="card feature"><div class="icon">🧠</div><div><h3>Answers out</h3><p class="muted">See likely concepts, run/pass/RPO splits, star-player alerts, and defensive recommendations.</p></div></div><div class="card feature"><div class="icon">🏈</div><div><h3>Game-night simple</h3><p class="muted">Coach account, team dashboard, one-click predictor access, and a clean sideline mode.</p></div></div></div></div></section>
-<section class="section"><div class="wrap"><div class="eyebrow">Inside the platform</div><h2>One clean workflow from prep to kickoff.</h2><div class="grid g4"><a class="card" href="import-center.html" style="text-decoration:none"><h3>Import Center</h3><p class="muted">CSV preview, chart review, and clean data intake.</p></a><a class="card" href="analytics.html" style="text-decoration:none"><h3>Analytics</h3><p class="muted">Formation, personnel, down-distance, and red-zone tendencies.</p></a><a class="card" href="live-mode.html" style="text-decoration:none"><h3>Game Mode</h3><p class="muted">Large sideline board for fast Friday night decisions.</p></a><a class="card" href="reports.html" style="text-decoration:none"><h3>Reports</h3><p class="muted">Printable scouting sheets for staff meetings.</p></a></div></div></section>
-<section class="section"><div class="wrap grid g2"><div><div class="eyebrow">Coach workflow</div><h2>Built for staffs, not coders.</h2><p class="lead">Create a team, open the dashboard, import charted plays, review the scouting board, and use sideline mode during a drive. No sales screens once you are inside the app.</p></div><div class="card"><table class="table"><tr><th>Old way</th><th>DPP way</th></tr><tr><td>Static tendency sheets</td><td>Live prediction board</td></tr><tr><td>Guessing off memory</td><td>Confidence plus explanation</td></tr><tr><td>Postgame only</td><td>Drive-by-drive adjustments</td></tr><tr><td>Too much clicking</td><td>Game-night dashboard</td></tr></table></div></div></section>
-<section class="section"><div class="wrap" style="text-align:center"><h2>Ready to build your defensive workspace?</h2><p class="lead" style="margin:auto">Create your coach account, set up your team, and open the predictor.</p><div class="actions" style="justify-content:center"><a class="btn gold" href="signup.html">Create account</a><a class="btn" href="how-it-works.html">View workflow</a></div></div></section>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="assets/config.js"></script><script src="assets/supabase-app.js"></script><script src="assets/footer.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Analyst Assist | Football Tendency Analytics</title>
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+:root{--bg:#05070b;--text:#f8fafc;--muted:#94a3b8;--gold:#f5c542;--royal:#0057b8;--green:#34d399;--line:rgba(255,255,255,.1);--mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;--sans:Inter,system-ui,-apple-system,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.6}
+a{color:inherit;text-decoration:none}
+
+/* NAV */
+.nav{display:flex;align-items:center;justify-content:space-between;padding:18px 32px;border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(5,7,11,.95);backdrop-filter:blur(12px);z-index:100}
+.nav-brand{font:900 14px var(--mono);letter-spacing:.1em;color:var(--gold)}
+.nav-links{display:flex;gap:6px}
+.nav-links a{padding:8px 14px;border-radius:999px;font:700 13px var(--sans);color:var(--muted);border:1px solid transparent;transition:all .15s}
+.nav-links a:hover{color:var(--text);border-color:var(--line)}
+.nav-cta{background:linear-gradient(135deg,var(--royal),#2d72d9);border-color:#6aa2ff!important;color:#fff!important;padding:8px 18px;border-radius:999px;font:700 13px var(--sans);border:1px solid transparent;cursor:pointer;transition:all .15s}
+.nav-cta:hover{border-color:var(--gold)!important}
+@media(max-width:640px){.nav-links{display:none}}
+
+/* HERO */
+.hero{max-width:1100px;margin:0 auto;padding:80px 32px 60px;text-align:center}
+.hero-eyebrow{font:700 12px var(--mono);letter-spacing:.14em;color:var(--gold);text-transform:uppercase;margin-bottom:20px}
+.hero h1{font-size:clamp(38px,7vw,72px);font-weight:900;line-height:.95;letter-spacing:-.03em;margin-bottom:24px}
+.hero h1 em{font-style:italic;color:var(--gold)}
+.hero-lead{font-size:clamp(16px,2.5vw,20px);color:var(--muted);max-width:680px;margin:0 auto 36px}
+.hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:12px;font:700 14px var(--sans);border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--text);cursor:pointer;transition:all .15s}
+.btn:hover{border-color:rgba(245,197,66,.4);background:rgba(245,197,66,.06)}
+.btn-primary{background:linear-gradient(135deg,var(--royal),#2d72d9);border-color:#6aa2ff;color:#fff}
+.btn-primary:hover{border-color:var(--gold)}
+.btn-ghost{background:transparent;color:var(--muted)}
+
+/* LIVE PREVIEW */
+.preview-wrap{max-width:900px;margin:0 auto 80px;padding:0 32px}
+.preview-card{background:linear-gradient(135deg,rgba(0,87,184,.25),rgba(9,16,29,.96) 60%,rgba(245,197,66,.07));border:1px solid rgba(245,197,66,.3);border-radius:24px;padding:28px;position:relative;overflow:hidden}
+.preview-label{font:800 10px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.preview-call{font:900 clamp(28px,5vw,48px) var(--mono);letter-spacing:-.04em;margin-bottom:4px}
+.preview-pct{font:900 clamp(22px,4vw,36px) var(--mono);color:var(--gold)}
+.preview-bar{height:8px;background:#080f1a;border-radius:999px;overflow:hidden;margin:14px 0}
+.preview-bar-fill{height:100%;width:74%;border-radius:999px;background:linear-gradient(90deg,var(--royal),var(--gold))}
+.preview-stats{display:flex;gap:24px;flex-wrap:wrap}
+.preview-stat span{display:block;font:900 22px var(--mono);color:var(--gold)}
+.preview-stat small{font:700 10px var(--mono);text-transform:uppercase;color:var(--muted)}
+.preview-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.tag{display:inline-flex;border:1px solid;border-radius:999px;padding:5px 12px;font:800 10px var(--mono)}
+.tag-run{color:var(--green);border-color:rgba(52,211,153,.4);background:rgba(52,211,153,.08)}
+.tag-warn{color:var(--gold);border-color:rgba(245,197,66,.4);background:rgba(245,197,66,.08)}
+.tag-danger{color:#fb7185;border-color:rgba(251,113,133,.4);background:rgba(251,113,133,.08)}
+
+/* SECTIONS */
+.section{max-width:1100px;margin:0 auto;padding:60px 32px}
+.section-label{font:800 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:12px}
+.section h2{font-size:clamp(28px,4vw,44px);font-weight:900;letter-spacing:-.03em;margin-bottom:16px}
+.section-lead{color:var(--muted);font-size:17px;max-width:600px;margin-bottom:48px}
+.divider{border:none;border-top:1px solid var(--line);max-width:1100px;margin:0 auto}
+
+/* WORKFLOW CARDS */
+.workflow-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:800px){.workflow-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:500px){.workflow-grid{grid-template-columns:1fr}}
+.workflow-card{background:rgba(11,18,32,.8);border:1px solid var(--line);border-radius:20px;padding:24px;transition:border-color .2s}
+.workflow-card:hover{border-color:rgba(245,197,66,.3)}
+.workflow-icon{font-size:28px;margin-bottom:14px}
+.workflow-card h3{font:800 15px var(--sans);margin-bottom:8px}
+.workflow-card p{color:var(--muted);font-size:13px;line-height:1.6}
+
+/* COMPARISON TABLE */
+.compare-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{padding:12px 16px;text-align:left;font:700 11px var(--mono);text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line)}
+td{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.06)}
+td:first-child{color:var(--muted)}
+td:last-child{color:var(--text);font-weight:600}
+tr:last-child td{border-bottom:none}
+.compare-header-bad{color:#fb7185}
+.compare-header-good{color:var(--gold)}
+
+/* HOW IT WORKS STEPS */
+.steps{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:640px){.steps{grid-template-columns:1fr}}
+.step{display:flex;gap:16px;background:rgba(11,18,32,.8);border:1px solid var(--line);border-radius:16px;padding:20px}
+.step-num{width:36px;height:36px;border-radius:12px;background:rgba(245,197,66,.12);border:1px solid rgba(245,197,66,.3);display:grid;place-items:center;font:900 14px var(--mono);color:var(--gold);flex-shrink:0}
+.step h3{font:700 14px var(--sans);margin-bottom:4px}
+.step p{color:var(--muted);font-size:13px;line-height:1.5}
+
+/* CTA BANNER */
+.cta-banner{background:linear-gradient(135deg,rgba(0,87,184,.3),rgba(9,16,29,.96) 60%,rgba(245,197,66,.08));border:1px solid rgba(245,197,66,.3);border-radius:24px;padding:48px 40px;text-align:center;max-width:1100px;margin:0 auto 80px}
+.cta-banner h2{font-size:clamp(26px,4vw,40px);font-weight:900;letter-spacing:-.03em;margin-bottom:12px}
+.cta-banner p{color:var(--muted);font-size:16px;margin-bottom:28px}
+
+/* FOOTER */
+footer{border-top:1px solid var(--line);padding:28px 32px;display:flex;justify-content:space-between;align-items:center;flex-wrap:gap;font:13px var(--sans);color:var(--muted)}
+footer a{color:var(--muted);margin-left:20px}
+footer a:hover{color:var(--text)}
+@media(max-width:600px){footer{flex-direction:column;gap:12px;text-align:center}}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand">ANALYST ASSIST</div>
+  <div class="nav-links">
+    <a href="features.html">Features</a>
+    <a href="how-it-works.html">How It Works</a>
+    <a href="login.html">Login</a>
+  </div>
+  <a href="signup.html" class="nav-cta">Create account →</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-eyebrow">Coach-first tendency analysis</div>
+  <h1>Know the tendency<br><em>before the snap.</em></h1>
+  <p class="hero-lead">Analyst Assist turns charted opponent data, CSV exports, and live game entries into fast tendency answers your staff can use on the sideline.</p>
+  <div class="hero-btns">
+    <a href="signup.html" class="btn btn-primary">Create coach account →</a>
+    <a href="how-it-works.html" class="btn">See how it works</a>
+    <a href="login.html" class="btn btn-ghost">Coach login</a>
+  </div>
+</section>
+
+<!-- LIVE PREVIEW CARD -->
+<div class="preview-wrap">
+  <div class="preview-card">
+    <div class="preview-label">Live defensive answer board · 3rd &amp; 7 · High RZ · 11 personnel</div>
+    <div class="preview-call">Mesh Concept</div>
+    <div class="preview-pct">74%</div>
+    <div class="preview-bar"><div class="preview-bar-fill"></div></div>
+    <div class="preview-tags">
+      <span class="tag tag-warn">PASS HEAVY</span>
+      <span class="tag tag-danger">SHOT ALERT</span>
+      <span class="tag tag-run">RPO WATCH</span>
+    </div>
+    <div class="preview-stats" style="margin-top:18px">
+      <div class="preview-stat"><span>52</span><small>plays logged</small></div>
+      <div class="preview-stat"><span>68%</span><small>pass rate</small></div>
+      <div class="preview-stat"><span>&lt;1s</span><small>update time</small></div>
+      <div class="preview-stat"><span>Box → Sideline</span><small>live sync</small></div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- WHAT IT IS -->
+<section class="section">
+  <div class="section-label">The role</div>
+  <h2>Not another film library.<br>Your decision layer.</h2>
+  <p class="section-lead">Built beside your existing film workflow — not as another place to store video.</p>
+  <div class="workflow-grid">
+    <div class="workflow-card">
+      <div class="workflow-icon">📊</div>
+      <h3>Charted data in</h3>
+      <p>Use opponent chart data, CSV exports from Hudl or Excel, or manual film entries. Keep your video workflow where it already lives.</p>
+    </div>
+    <div class="workflow-card">
+      <div class="workflow-icon">🧠</div>
+      <h3>Tendency answers out</h3>
+      <p>See likely concepts, run/pass/RPO splits, star-player alerts, situational tendencies, and defensive recommendations — all from your own data.</p>
+    </div>
+    <div class="workflow-card">
+      <div class="workflow-icon">🏈</div>
+      <h3>Game-night simple</h3>
+      <p>Box Mode for the press box, Sideline Mode for the field. Both stay live-synced. One coach logs it, the other sees it instantly.</p>
+    </div>
+    <div class="workflow-card">
+      <div class="workflow-icon">📡</div>
+      <h3>Works offline too</h3>
+      <p>Bad stadium WiFi? No problem. The app falls back to local storage automatically and keeps working. Syncs when signal returns.</p>
+    </div>
+    <div class="workflow-card">
+      <div class="workflow-icon">⚡</div>
+      <h3>Updates every play</h3>
+      <p>Log a play and the prediction board updates in under a second. As the game unfolds, live tendency carries more weight than film.</p>
+    </div>
+    <div class="workflow-card">
+      <div class="workflow-icon">📋</div>
+      <h3>Halftime reports</h3>
+      <p>One tap generates a halftime adjustment sheet with split data, top calls, explosive play risk, and drive-by-drive patterns.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- HOW IT WORKS STEPS -->
+<section class="section">
+  <div class="section-label">Inside the platform</div>
+  <h2>One clean workflow<br>from prep to kickoff.</h2>
+  <p class="section-lead">Everything in one place — no jumping between apps.</p>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div><h3>Set up your opponent</h3><p>Name the opponent, set your defensive system, and activate the concepts they actually run.</p></div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div><h3>Import your film chart</h3><p>Drop a Hudl or Excel CSV. The app auto-detects columns and lets you fix the mapping before importing.</p></div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div><h3>Review tendency analytics</h3><p>See concept usage, run/pass/RPO splits, down-distance tendencies, and explosive risk before the game.</p></div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div><h3>Open Game Mode</h3><p>Box coach sets down, distance, formation. The prediction board updates instantly. Sideline sees it live.</p></div>
+    </div>
+    <div class="step">
+      <div class="step-num">5</div>
+      <div><h3>Log plays on the sideline</h3><p>Tap Run, Pass, RPO, or Screen after each play. The live log builds your halftime adjustment sheet automatically.</p></div>
+    </div>
+    <div class="step">
+      <div class="step-num">6</div>
+      <div><h3>Pull the halftime sheet</h3><p>One tap copies the full halftime adjustment report — splits, top calls, alerts, and explosive play data.</p></div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- COMPARISON TABLE -->
+<section class="section">
+  <div class="section-label">Coach workflow</div>
+  <h2>Built for staffs, not coders.</h2>
+  <p class="section-lead">No sales screens once you're inside the app.</p>
+  <div class="compare-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th class="compare-header-bad">Old way</th>
+          <th class="compare-header-good">Analyst Assist way</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Static tendency sheets printed before the game</td><td>Live prediction board that updates every play</td></tr>
+        <tr><td>Guessing off memory during a drive</td><td>Confidence score + explanation for every call</td></tr>
+        <tr><td>Postgame film review only</td><td>Drive-by-drive adjustments during the game</td></tr>
+        <tr><td>Box coach and sideline coach on different pages</td><td>Box and sideline synced live — one logs, both see</td></tr>
+        <tr><td>Halftime sheet built manually at the break</td><td>One-tap halftime report generated automatically</td></tr>
+        <tr><td>App stops working when WiFi is bad</td><td>Falls back to local mode, syncs when signal returns</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- CTA BANNER -->
+<div style="padding:0 32px">
+  <div class="cta-banner">
+    <h2>Ready to build your defensive workspace?</h2>
+    <p>Create your coach account, set up your team, and open the predictor. Takes about two minutes.</p>
+    <div class="hero-btns">
+      <a href="signup.html" class="btn btn-primary">Create account →</a>
+      <a href="how-it-works.html" class="btn">View workflow</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <span>© 2026 Analyst Assist</span>
+  <div>
+    <a href="features.html">Features</a>
+    <a href="how-it-works.html">How It Works</a>
+    <a href="privacy.html">Privacy</a>
+    <a href="terms.html">Terms</a>
+  </div>
+</footer>
+
+</body>
+</html>
