@@ -445,7 +445,7 @@ input[type=file] { background: transparent; border: none; padding: 0; }
   <div class="nav-right">
     <button class="nav-link" onclick="showPage('dashboard',document.querySelector('.nav-link'))" style="border-color:rgba(245,197,66,.25)">Home</button><a class="nav-link" href="how-it-works.html">How It Works</a><a class="nav-link" href="staff-access.html">Staff Access</a><button class="nav-link" onclick="signOut()" style="background:transparent">Sign out</button>
     <div class="nav-opp" id="navOpp">vs Opponent</div>
-    <div class="sync-badge"><span class="sync-dot"></span>LIVE</div>
+    <div class="sync-badge" id="syncBadge"><span class="sync-dot" id="syncDot"></span><span id="syncLabel">LOCAL</span></div>
   </div>
 </nav>
 
