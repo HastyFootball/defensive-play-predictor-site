@@ -1331,14 +1331,25 @@ function confidence(preds){
 }
 
 function runPassSplit(preds){
-  let x={r:0,p:0,o:0};
-  preds.forEach(v=>{ if(v.type==='Run')x.r+=v.pct; else if(v.type==='Pass')x.p+=v.pct; else x.o+=v.pct; });
+  let x={r:0,p:0,o:0,s:0};
+  preds.forEach(v=>{
+    if(v.type==='Run')         x.r+=v.pct;
+    else if(v.name==='Screen'||v.type==='Screen') x.s+=v.pct;
+    else if(v.type==='RPO')    x.o+=v.pct;
+    else                       x.p+=v.pct;
+  });
   return x;
 }
 
 function splitFromData(arr){
-  let x={run:0,pass:0,rpo:0};
-  arr.forEach(p=>{ let t=p.type||typeOf(p.concept); if(t==='Run')x.run++; else if(t==='Pass')x.pass++; else x.rpo++; });
+  let x={run:0,pass:0,rpo:0,screen:0};
+  arr.forEach(p=>{
+    let t=p.type||typeOf(p.concept);
+    if(p.concept==='Screen'||t==='Screen') x.screen++;
+    else if(t==='Run')  x.run++;
+    else if(t==='RPO')  x.rpo++;
+    else                x.pass++;  // Pass
+  });
   return x;
 }
 
@@ -1477,7 +1488,7 @@ function runPredict(){
         <div class="split-rpo" style="width:${sp.o*100}%"></div>
         <div class="split-pass" style="width:${sp.p*100}%"></div>
       </div>
-      <p class="small">Run ${Math.round(sp.r*100)}% · Pass ${Math.round(sp.p*100)}% · RPO/screen ${Math.round(sp.o*100)}%</p>
+      <p class="small">Run ${Math.round(sp.r*100)}% · Pass ${Math.round(sp.p*100)}% · RPO ${Math.round(sp.o*100)}% · Screen ${Math.round((sp.s||0)*100)}%</p>
     </div>`;
 
   // Alerts
@@ -1736,14 +1747,86 @@ function renderAnalytics(){
   let explosive=all.filter(p=>['xp','td'].includes(p.result));
   if($('ana-explosive'))$('ana-explosive').textContent=`${explosive.length} explosive plays (${pct(explosive.length,all.length)}%). ${explosiveRisk().text}`;
 }
-
-function statBars(o, total, labelFn){
-  if(!total) return '<div class="empty-state" style="padding:16px 0">No data.</div>';
-  return Object.entries(o).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([k,n])=>`
-    <div class="stat-bar-row">
-      <div class="label-row"><b>${esc(labelFn?labelFn(k):k)}</b><span>${pct(n,total)}%</span></div>
-      <div class="bar"><div class="bar-fill" style="width:${n/total*100}%"></div></div>
-    </div>`).join('');
+ 
+// REPLACE WITH:
+function renderAnalytics(){
+  let all=[...ST.film,...ST.live];
+  if(!all.length){
+    ['ana-usage','ana-down','ana-zone','ana-split-bar','ana-split-text','ana-explosive'].forEach(id=>{ if($(id))$(id).innerHTML='<div class="empty-state" style="padding:16px 0">No data yet.</div>'; });
+    return;
+  }
+  let sp=splitFromData(all);
+ 
+  // Run/Pass/RPO/Screen split bar
+  if($('ana-split-bar'))$('ana-split-bar').innerHTML=`
+    <div class="split-meter">
+      <div class="split-run"    style="width:${sp.run/all.length*100}%"></div>
+      <div class="split-rpo"    style="width:${sp.rpo/all.length*100}%"></div>
+      <div class="split-screen" style="width:${sp.screen/all.length*100}%;background:var(--purple,#a855f7)"></div>
+      <div class="split-pass"   style="width:${sp.pass/all.length*100}%"></div>
+    </div>`;
+  if($('ana-split-text'))$('ana-split-text').textContent=
+    `Run ${pct(sp.run,all.length)}% · Pass ${pct(sp.pass,all.length)}% · RPO ${pct(sp.rpo,all.length)}% · Screen ${pct(sp.screen,all.length)}%`;
+ 
+  // Concept usage — unchanged
+  if($('ana-usage'))$('ana-usage').innerHTML=statBars(countBy(all,'concept'),all.length);
+ 
+  // By Down — show top concept + run/pass split per down, not just play count %
+  if($('ana-down')){
+    const DOWN_LABEL = {'1':'1st down','2':'2nd down','3':'3rd down','4':'4th down'};
+    const downRows = ['1','2','3','4'].map(dn => {
+      const plays = all.filter(p=>p.down===dn);
+      if(!plays.length) return '';
+      const sp2 = splitFromData(plays);
+      const top = topEntry(countBy(plays,'concept'));
+      const runPct = pct(sp2.run,plays.length);
+      const passPct = pct(sp2.pass,plays.length);
+      const scPct = pct(sp2.screen,plays.length);
+      const rpoPct = pct(sp2.rpo,plays.length);
+      return `
+        <div class="stat-bar-row">
+          <div class="label-row">
+            <b>${DOWN_LABEL[dn]||dn} <span style="color:var(--muted);font-weight:400;font-size:11px">(${plays.length} plays)</span></b>
+            <span style="color:var(--gold)">${top?top[0]:''}</span>
+          </div>
+          <div class="bar"><div class="bar-fill" style="width:${pct(top?top[1]:0,plays.length)}%"></div></div>
+          <div style="font:11px var(--mono);color:var(--muted);margin-top:3px">
+            Run ${runPct}% · Pass ${passPct}%${rpoPct?` · RPO ${rpoPct}%`:''}${scPct?` · Screen ${scPct}%`:''}
+          </div>
+        </div>`;
+    }).join('');
+    $('ana-down').innerHTML = downRows || '<div class="empty-state" style="padding:16px 0">No data.</div>';
+  }
+ 
+  // By Zone — show top concept + run/pass split per zone
+  if($('ana-zone')){
+    const zoneOrder = ['own','mid','hrz','rz','gl'];
+    const zoneRows = zoneOrder.map(z => {
+      const plays = all.filter(p=>p.zone===z);
+      if(!plays.length) return '';
+      const sp2 = splitFromData(plays);
+      const top = topEntry(countBy(plays,'concept'));
+      const runPct = pct(sp2.run,plays.length);
+      const passPct = pct(sp2.pass,plays.length);
+      const scPct = pct(sp2.screen,plays.length);
+      const rpoPct = pct(sp2.rpo,plays.length);
+      return `
+        <div class="stat-bar-row">
+          <div class="label-row">
+            <b>${ZONE_LABEL[z]||z} <span style="color:var(--muted);font-weight:400;font-size:11px">(${plays.length} plays)</span></b>
+            <span style="color:var(--gold)">${top?top[0]:''}</span>
+          </div>
+          <div class="bar"><div class="bar-fill" style="width:${pct(top?top[1]:0,plays.length)}%"></div></div>
+          <div style="font:11px var(--mono);color:var(--muted);margin-top:3px">
+            Run ${runPct}% · Pass ${passPct}%${rpoPct?` · RPO ${rpoPct}%`:''}${scPct?` · Screen ${scPct}%`:''}
+          </div>
+        </div>`;
+    }).join('');
+    $('ana-zone').innerHTML = zoneRows || '<div class="empty-state" style="padding:16px 0">No data.</div>';
+  }
+ 
+  let explosive=all.filter(p=>['xp','td'].includes(p.result));
+  if($('ana-explosive'))$('ana-explosive').textContent=`${explosive.length} explosive plays (${pct(explosive.length,all.length)}%). ${explosiveRisk().text}`;
 }
 
 // ─── SCOUT REPORT ────────────────────────────────────────────
