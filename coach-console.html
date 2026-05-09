@@ -1734,120 +1734,104 @@ function copyLiveToFilm(){
 // ─── ANALYTICS ────────────────────────────────────────────────
 function renderAnalytics(){
   let all=[...ST.film,...ST.live];
-  if(!all.length){
-    ['ana-usage','ana-down','ana-zone','ana-split-bar','ana-split-text','ana-explosive'].forEach(id=>{ if($(id))$(id).innerHTML='<div class="empty-state" style="padding:16px 0">No data yet.</div>'; });
-    return;
-  }
-  let sp=splitFromData(all);
-  if($('ana-split-bar'))$('ana-split-bar').innerHTML=`<div class="split-meter"><div class="split-run" style="width:${sp.run/all.length*100}%"></div><div class="split-rpo" style="width:${sp.rpo/all.length*100}%"></div><div class="split-pass" style="width:${sp.pass/all.length*100}%"></div></div>`;
-  if($('ana-split-text'))$('ana-split-text').textContent=`Run ${pct(sp.run,all.length)}% · Pass ${pct(sp.pass,all.length)}% · RPO ${pct(sp.rpo,all.length)}%`;
-  if($('ana-usage'))$('ana-usage').innerHTML=statBars(countBy(all,'concept'),all.length);
-  if($('ana-down'))$('ana-down').innerHTML=statBars(countBy(all,'down'),all.length,k=>`${k}st/nd/rd/th down`);
-  if($('ana-zone'))$('ana-zone').innerHTML=statBars(countBy(all,p=>ZONE_LABEL[p.zone]||p.zone),all.length);
-  let explosive=all.filter(p=>['xp','td'].includes(p.result));
-  if($('ana-explosive'))$('ana-explosive').textContent=`${explosive.length} explosive plays (${pct(explosive.length,all.length)}%). ${explosiveRisk().text}`;
-}
- 
-// REPLACE WITH:
-function renderAnalytics(){
-  let all=[...ST.film,...ST.live];
-  if(!all.length){
-    ['ana-usage','ana-down','ana-zone','ana-split-bar','ana-split-text','ana-explosive'].forEach(id=>{ if($(id))$(id).innerHTML='<div class="empty-state" style="padding:16px 0">No data yet.</div>'; });
-    return;
-  }
-  let sp=splitFromData(all);
- 
-  // Run/Pass/RPO/Screen split bar
-  if($('ana-split-bar'))$('ana-split-bar').innerHTML=`
-    <div class="split-meter">
-      <div class="split-run"    style="width:${sp.run/all.length*100}%"></div>
-      <div class="split-rpo"    style="width:${sp.rpo/all.length*100}%"></div>
-      <div class="split-screen" style="width:${sp.screen/all.length*100}%;background:var(--purple,#a855f7)"></div>
-      <div class="split-pass"   style="width:${sp.pass/all.length*100}%"></div>
-    </div>`;
-  if($('ana-split-text'))$('ana-split-text').textContent=
-    `Run ${pct(sp.run,all.length)}% · Pass ${pct(sp.pass,all.length)}% · RPO ${pct(sp.rpo,all.length)}% · Screen ${pct(sp.screen,all.length)}%`;
- 
-  // Concept usage — unchanged
-  if($('ana-usage'))$('ana-usage').innerHTML=statBars(countBy(all,'concept'),all.length);
- 
-  // By Down — show top concept + run/pass split per down, not just play count %
-  if($('ana-down')){
-    const DOWN_LABEL = {'1':'1st down','2':'2nd down','3':'3rd down','4':'4th down'};
-    const downRows = ['1','2','3','4'].map(dn => {
-      const plays = all.filter(p=>p.down===dn);
-      if(!plays.length) return '';
-      const sp2 = splitFromData(plays);
-      const top = topEntry(countBy(plays,'concept'));
-      const runPct = pct(sp2.run,plays.length);
-      const passPct = pct(sp2.pass,plays.length);
-      const scPct = pct(sp2.screen,plays.length);
-      const rpoPct = pct(sp2.rpo,plays.length);
-      return `
-        <div class="stat-bar-row">
-          <div class="label-row">
-            <b>${DOWN_LABEL[dn]||dn} <span style="color:var(--muted);font-weight:400;font-size:11px">(${plays.length} plays)</span></b>
-            <span style="color:var(--gold)">${top?top[0]:''}</span>
-          </div>
-          <div class="bar"><div class="bar-fill" style="width:${pct(top?top[1]:0,plays.length)}%"></div></div>
-          <div style="font:11px var(--mono);color:var(--muted);margin-top:3px">
-            Run ${runPct}% · Pass ${passPct}%${rpoPct?` · RPO ${rpoPct}%`:''}${scPct?` · Screen ${scPct}%`:''}
-          </div>
-        </div>`;
-    }).join('');
-    $('ana-down').innerHTML = downRows || '<div class="empty-state" style="padding:16px 0">No data.</div>';
-  }
- 
-  // By Zone — show top concept + run/pass split per zone
-  if($('ana-zone')){
-    const zoneOrder = ['own','mid','hrz','rz','gl'];
-    const zoneRows = zoneOrder.map(z => {
-      const plays = all.filter(p=>p.zone===z);
-      if(!plays.length) return '';
-      const sp2 = splitFromData(plays);
-      const top = topEntry(countBy(plays,'concept'));
-      const runPct = pct(sp2.run,plays.length);
-      const passPct = pct(sp2.pass,plays.length);
-      const scPct = pct(sp2.screen,plays.length);
-      const rpoPct = pct(sp2.rpo,plays.length);
-      return `
-        <div class="stat-bar-row">
-          <div class="label-row">
-            <b>${ZONE_LABEL[z]||z} <span style="color:var(--muted);font-weight:400;font-size:11px">(${plays.length} plays)</span></b>
-            <span style="color:var(--gold)">${top?top[0]:''}</span>
-          </div>
-          <div class="bar"><div class="bar-fill" style="width:${pct(top?top[1]:0,plays.length)}%"></div></div>
-          <div style="font:11px var(--mono);color:var(--muted);margin-top:3px">
-            Run ${runPct}% · Pass ${passPct}%${rpoPct?` · RPO ${rpoPct}%`:''}${scPct?` · Screen ${scPct}%`:''}
-          </div>
-        </div>`;
-    }).join('');
-    $('ana-zone').innerHTML = zoneRows || '<div class="empty-state" style="padding:16px 0">No data.</div>';
-  }
- 
-  let explosive=all.filter(p=>['xp','td'].includes(p.result));
-  if($('ana-explosive'))$('ana-explosive').textContent=`${explosive.length} explosive plays (${pct(explosive.length,all.length)}%). ${explosiveRisk().text}`;
-}
 
-// ─── SCOUT REPORT ────────────────────────────────────────────
-function renderScoutReport(){
-  let all=[...ST.film,...ST.live], el=$('scoutReport'); if(!el)return;
-  if(!all.length){ el.innerHTML='<div class="empty-state">Import film to generate a scouting report.</div>'; return; }
-  let preds=computePreds(), sp=splitFromData(all);
-  let top3=preds.slice(0,3).map(p=>`${p.name} ${Math.round(p.pct*100)}%`).join(' · ');
-  let thirdLong=all.filter(p=>p.down==='3'&&['long','xlong'].includes(p.dist));
-  let rz=all.filter(p=>['rz','gl'].includes(p.zone));
-  let th=thirdLong.length?topEntry(countBy(thirdLong,'concept')):null;
-  let rh=rz.length?topEntry(countBy(rz,'concept')):null;
-  el.innerHTML=`
-    <div class="g3">
-      <div class="alert-card"><strong>Overall split</strong><div class="small">Run ${pct(sp.run,all.length)}% · Pass ${pct(sp.pass,all.length)}% · RPO ${pct(sp.rpo,all.length)}%</div></div>
-      <div class="alert-card"><strong>Top calls</strong><div class="small">${esc(top3)}</div></div>
-      <div class="alert-card"><strong>Explosive risk</strong><div class="small">${esc(explosiveRisk().text)}</div></div>
-      <div class="alert-card"><strong>3rd & long</strong><div class="small">${th?`${th[0]} ${pct(th[1],thirdLong.length)}% (${thirdLong.length} plays)`:thirdLong.length?'See data':'No samples'}</div></div>
-      <div class="alert-card"><strong>Red zone / GL</strong><div class="small">${rh?`${rh[0]} ${pct(rh[1],rz.length)}% (${rz.length} plays)`:rz.length?'See data':'No samples'}</div></div>
-      <div class="alert-card"><strong>Sample</strong><div class="small">${ST.film.length} film · ${ST.live.length} live · ${all.length} total</div></div>
-    </div>`;
+  if(!all.length){
+    ['ana-usage','ana-down','ana-zone','ana-split-bar','ana-split-text','ana-explosive']
+      .forEach(id=>{
+        if($(id)){
+          $(id).innerHTML='<div class="empty-state" style="padding:16px 0">No data yet.</div>';
+        }
+      });
+    return;
+  }
+
+  let sp=splitFromData(all);
+
+  // Split bar
+  if($('ana-split-bar')){
+    $('ana-split-bar').innerHTML=`
+      <div class="split-meter">
+        <div class="split-run" style="width:${sp.run/all.length*100}%"></div>
+        <div class="split-rpo" style="width:${sp.rpo/all.length*100}%"></div>
+        <div class="split-screen" style="width:${sp.screen/all.length*100}%;background:var(--purple,#a855f7)"></div>
+        <div class="split-pass" style="width:${sp.pass/all.length*100}%"></div>
+      </div>`;
+  }
+
+  // Split text
+  if($('ana-split-text')){
+    $('ana-split-text').textContent=
+      `Run ${pct(sp.run,all.length)}% · Pass ${pct(sp.pass,all.length)}% · RPO ${pct(sp.rpo,all.length)}% · Screen ${pct(sp.screen,all.length)}%`;
+  }
+
+  // Usage
+  if($('ana-usage')){
+    $('ana-usage').innerHTML=
+      statBars(countBy(all,'concept'),all.length);
+  }
+
+  // By Down
+  if($('ana-down')){
+    const DOWN_LABEL={
+      '1':'1st Down',
+      '2':'2nd Down',
+      '3':'3rd Down',
+      '4':'4th Down'
+    };
+
+    $('ana-down').innerHTML=['1','2','3','4'].map(dn=>{
+      const plays=all.filter(p=>p.down===dn);
+
+      if(!plays.length) return '';
+
+      const top=topEntry(countBy(plays,'concept'));
+
+      return `
+        <div class="stat-bar-row">
+          <div class="label-row">
+            <b>${DOWN_LABEL[dn]}</b>
+            <span>${top ? top[0] : ''}</span>
+          </div>
+          <div class="bar">
+            <div class="bar-fill" style="width:${pct(top ? top[1] : 0,plays.length)}%"></div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // By Zone
+  if($('ana-zone')){
+    const zones=['own','mid','hrz','rz','gl'];
+
+    $('ana-zone').innerHTML=zones.map(z=>{
+      const plays=all.filter(p=>p.zone===z);
+
+      if(!plays.length) return '';
+
+      const top=topEntry(countBy(plays,'concept'));
+
+      return `
+        <div class="stat-bar-row">
+          <div class="label-row">
+            <b>${ZONE_LABEL[z]}</b>
+            <span>${top ? top[0] : ''}</span>
+          </div>
+          <div class="bar">
+            <div class="bar-fill" style="width:${pct(top ? top[1] : 0,plays.length)}%"></div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Explosive
+  let explosive=all.filter(p=>['xp','td'].includes(p.result));
+
+  if($('ana-explosive')){
+    $('ana-explosive').textContent=
+      `${explosive.length} explosive plays (${pct(explosive.length,all.length)}%). ${explosiveRisk().text}`;
+  }
 }
 
 // ─── REPORTS PAGE ────────────────────────────────────────────
