@@ -1086,29 +1086,57 @@ input[type=file] { background: transparent; border: none; padding: 0; }
 <section class="page" id="page-reports">
   <div class="page-header">
     <div class="page-header-row">
-      <div><h1><span>Reports</span></h1><p>KPIs, concept usage, accuracy, halftime adjustments, and star report.</p></div>
+      <div><h1><span>Coach Reports</span></h1><p>Pregame film packet, live halftime comparison, historical adjustment clues, and postgame review. Live Booth Mode is unchanged.</p></div>
       <div class="row">
-        <button class="btn btn-sm btn-primary" onclick="copyHalftime()">Copy halftime sheet</button>
+        <button class="btn btn-sm btn-primary" onclick="printPregameReport()">Print pregame packet</button>
+        <button class="btn btn-sm" onclick="copyHalftime()">Copy halftime report</button>
         <button class="btn btn-sm" onclick="downloadCsv('all')">Export CSV</button>
       </div>
     </div>
   </div>
 
-  <div class="g4" id="r-kpis" style="margin-bottom:14px"></div>
-
-  <div class="g2">
-    <div class="card"><div class="card-title">Concept usage</div><div id="r-usage"></div></div>
-    <div class="card"><div class="card-title">Situational tendencies</div><div id="r-sits"></div></div>
-    <div class="card"><div class="card-title">Prediction accuracy</div><div id="r-accuracy"></div></div>
-    <div class="card"><div class="card-title">Star ON / OFF report</div><div id="r-star"></div></div>
+  <div class="report-tabs row" style="margin-bottom:14px">
+    <button class="btn btn-sm btn-primary" id="report-tab-pregame" onclick="setReportView('pregame')">Pregame</button>
+    <button class="btn btn-sm" id="report-tab-halftime" onclick="setReportView('halftime')">Halftime</button>
+    <button class="btn btn-sm" id="report-tab-postgame" onclick="setReportView('postgame')">Postgame</button>
   </div>
 
-  <div class="card">
-    <div class="row" style="justify-content:space-between;margin-bottom:12px">
-      <div class="card-title" style="margin:0">Halftime / Drive Adjustment Sheet</div>
-      <button class="btn btn-sm" onclick="copyHalftime()">Copy</button>
+  <div id="report-view-pregame">
+    <div class="g4" id="pregame-kpis" style="margin-bottom:14px"></div>
+    <div class="card">
+      <div class="row" style="justify-content:space-between;margin-bottom:12px">
+        <div><div class="card-title" style="margin:0">Pregame Coaching Packet</div><div class="small">Film only — designed for the coaches meeting.</div></div>
+        <div class="row"><button class="btn btn-sm" onclick="copyPregameReport()">Copy</button><button class="btn btn-sm btn-primary" onclick="printPregameReport()">Print</button></div>
+      </div>
+      <div id="r-pregame"></div>
     </div>
-    <div class="halftime-text" id="r-halftime"></div>
+  </div>
+
+  <div id="report-view-halftime" style="display:none">
+    <div class="g4" id="r-kpis" style="margin-bottom:14px"></div>
+    <div class="g2">
+      <div class="card"><div class="card-title">Film vs Tonight</div><div id="r-changes"></div></div>
+      <div class="card"><div class="card-title">Where We Are Getting Hurt</div><div id="r-problems"></div></div>
+      <div class="card"><div class="card-title">Historical Halftime Adjustments</div><div id="r-history"></div></div>
+      <div class="card"><div class="card-title">Star ON / OFF Tonight</div><div id="r-star"></div></div>
+    </div>
+    <div class="card">
+      <div class="row" style="justify-content:space-between;margin-bottom:12px">
+        <div><div class="card-title" style="margin:0">Halftime Adjustment Report</div><div class="small">Live plays only, compared against film.</div></div>
+        <button class="btn btn-sm btn-primary" onclick="copyHalftime()">Copy</button>
+      </div>
+      <div class="halftime-text" id="r-halftime"></div>
+    </div>
+  </div>
+
+  <div id="report-view-postgame" style="display:none">
+    <div class="g4" id="postgame-kpis" style="margin-bottom:14px"></div>
+    <div class="g2">
+      <div class="card"><div class="card-title">Prediction Accuracy</div><div id="r-accuracy"></div></div>
+      <div class="card"><div class="card-title">Live Concept Usage</div><div id="r-usage"></div></div>
+      <div class="card"><div class="card-title">Situational Tendencies</div><div id="r-sits"></div></div>
+      <div class="card"><div class="card-title">Coordinator DNA Learned</div><div id="r-dna"></div></div>
+    </div>
   </div>
 </section>
 
@@ -2250,80 +2278,162 @@ function printScoutReport(){
 }
 
 // ─── REPORTS PAGE ────────────────────────────────────────────
-function renderReports(){
-  let all=[...ST.film,...ST.live], live=ST.live;
-  if($('r-kpis'))$('r-kpis').innerHTML=[
-    ['Live plays',live.length],['Film plays',ST.film.length],
-    ['Top-1 acc',live.length?Math.round(live.filter(p=>p.top1hit).length/live.length*100)+'%':'—'],
-    ['Top-3 acc',live.length?Math.round(live.filter(p=>p.top3hit).length/live.length*100)+'%':'—']
-  ].map(([l,v])=>`<div class="kpi"><span class="kpi-val">${v}</span><div class="kpi-label">${l}</div></div>`).join('');
-
-  if(!all.length){
-    ['r-usage','r-sits','r-accuracy','r-star'].forEach(id=>{if($(id))$(id).innerHTML='<div class="empty-state">No data yet.</div>';});
-    if($('r-halftime'))$('r-halftime').textContent='Load film or log plays to generate the halftime sheet.';
-    return;
+let reportView = 'pregame';
+function setReportView(view){
+  reportView=view;
+  ['pregame','halftime','postgame'].forEach(v=>{
+    const panel=$('report-view-'+v), btn=$('report-tab-'+v);
+    if(panel) panel.style.display=v===view?'block':'none';
+    if(btn) btn.classList.toggle('btn-primary',v===view);
+  });
+  renderReports();
+}
+function typeCounts(arr){
+  const out={Run:0,Pass:0,RPO:0,Screen:0};
+  arr.forEach(p=>{const t=p.type||typeOf(p.concept);out[t]=(out[t]||0)+1;});
+  return out;
+}
+function reliableLabel(n){ return n>=40?'Very strong':n>=20?'Strong':n>=10?'Moderate':n>=5?'Limited':'Very limited'; }
+function deltaLine(label,filmVal,liveVal,suffix='%'){
+  const d=liveVal-filmVal, cls=Math.abs(d)>=15?'alert-high':Math.abs(d)>=8?'alert-med':'';
+  return `<div class="trend-line ${cls}"><b>${esc(label)}</b><span>Film ${filmVal}${suffix} → Tonight ${liveVal}${suffix} <b>${d>=0?'+':''}${d}${suffix}</b></span></div>`;
+}
+function reportTop(arr,key='concept'){ const x=topEntry(countBy(arr,key)); return x?{name:x[0],n:x[1],pct:pct(x[1],arr.length)}:null; }
+function filterFirstHalf(arr){ return arr.filter(p=>['1','2',1,2].includes(p.quarter)); }
+function filterSecondHalf(arr){ return arr.filter(p=>['3','4',3,4].includes(p.quarter)); }
+function sequenceRows(arr){
+  const pairs={};
+  for(let i=1;i<arr.length;i++){
+    const prev=arr[i-1], cur=arr[i];
+    if(!prev?.concept||!cur?.concept)continue;
+    const key=`${prev.concept} → ${cur.concept}`; pairs[key]=(pairs[key]||0)+1;
   }
-  if($('r-usage'))$('r-usage').innerHTML=statBars(countBy(all,'concept'),all.length);
-  let sits={};all.forEach(p=>{let k=`${p.down}/${DIST_LABEL[p.dist]||p.dist}`;(sits[k]??=[]).push(p);});
-  if($('r-sits'))$('r-sits').innerHTML=Object.entries(sits).map(([k,a])=>`
-    <div class="trend-line"><b>${k}</b><span>${topEntry(countBy(a,'concept'))?.[0]||'—'} (${a.length})</span></div>`).join('');
-  if($('r-accuracy'))$('r-accuracy').innerHTML=live.length?`
-    <div class="trend-line"><b>Top-1</b><span>${live.filter(p=>p.top1hit).length}/${live.length}</span></div>
-    <div class="trend-line"><b>Top-3</b><span>${live.filter(p=>p.top3hit).length}/${live.length}</span></div>`
-    :'<div class="empty-state">No graded plays yet.</div>';
+  return Object.entries(pairs).sort((a,b)=>b[1]-a[1]);
+}
+function coordinatorDna(arr){
+  if(arr.length<5)return ['Not enough film to establish coordinator habits yet.'];
+  const lines=[];
+  const afterNeg=[] , afterExp=[];
+  for(let i=1;i<arr.length;i++){
+    if(arr[i-1].result==='neg')afterNeg.push(arr[i]);
+    if(['xp','td'].includes(arr[i-1].result))afterExp.push(arr[i]);
+  }
+  const shotMid=arr.filter(p=>['mid','hrz'].includes(p.zone)&&['Shot','Deep Ball','Play Action'].includes(p.concept));
+  const thirdLong=arr.filter(p=>String(p.down)==='3'&&['long','xlong'].includes(p.dist));
+  if(afterNeg.length){const t=reportTop(afterNeg);lines.push(`After a negative play: ${t.name} ${t.pct}% (${afterNeg.length} samples).`);}
+  if(afterExp.length){const tc=typeCounts(afterExp);lines.push(`After an explosive: ${pct(tc.Run,afterExp.length)}% run / ${pct(tc.Pass+tc.Screen,afterExp.length)}% pass-screen (${afterExp.length} samples).`);}
+  if(shotMid.length)lines.push(`Crossing midfield creates a shot/play-action alert: ${shotMid.length} calls in the film sample.`);
+  if(thirdLong.length){const t=reportTop(thirdLong);lines.push(`Third-and-long identity: ${t.name} ${t.pct}% (${thirdLong.length} samples).`);}
+  const seq=sequenceRows(arr)[0]; if(seq)lines.push(`Most repeated call sequence: ${seq[0]} (${seq[1]} times).`);
+  return lines.length?lines:['No repeatable coordinator habit cleared the sample threshold.'];
+}
+function historicalHalftimeInsights(film){
+  const first=filterFirstHalf(film), second=filterSecondHalf(film);
+  if(first.length<5||second.length<5)return [`Quarter information is too limited for a trustworthy halftime-history comparison (${first.length} first-half / ${second.length} second-half plays).`];
+  const a=typeCounts(first), b=typeCounts(second), lines=[];
+  const runDelta=pct(b.Run,second.length)-pct(a.Run,first.length);
+  const passDelta=pct(b.Pass+b.Screen,second.length)-pct(a.Pass+a.Screen,first.length);
+  if(Math.abs(runDelta)>=8)lines.push(`In prior film, second-half run rate moved ${runDelta>=0?'up':'down'} ${Math.abs(runDelta)} points.`);
+  if(Math.abs(passDelta)>=8)lines.push(`Second-half pass/screen rate moved ${passDelta>=0?'up':'down'} ${Math.abs(passDelta)} points.`);
+  const fTop=reportTop(first), sTop=reportTop(second);
+  if(fTop&&sTop&&fTop.name!==sTop.name)lines.push(`Primary call changed from ${fTop.name} in first halves to ${sTop.name} in second halves.`);
+  const firstForms=reportTop(first,'formation'), secondForms=reportTop(second,'formation');
+  if(firstForms&&secondForms&&firstForms.name!==secondForms.name)lines.push(`Most-used formation shifted from ${firstForms.name} to ${secondForms.name} after halftime.`);
+  return lines.length?lines:['Film shows no major, repeatable second-half shift; expect them to stay near their base identity.'];
+}
+function biggestFilmLiveChanges(film,live){
+  if(!live.length)return '<div class="empty-state">Log live plays to compare tonight against film.</div>';
+  if(!film.length)return '<div class="empty-state">No film sample is loaded for comparison.</div>';
+  const rows=[];
+  const ft=typeCounts(film), lt=typeCounts(live);
+  rows.push({label:'Run rate',f:pct(ft.Run,film.length),l:pct(lt.Run,live.length)});
+  rows.push({label:'Pass + screen rate',f:pct(ft.Pass+ft.Screen,film.length),l:pct(lt.Pass+lt.Screen,live.length)});
+  const concepts=new Set([...film.map(p=>p.concept),...live.map(p=>p.concept)]);
+  concepts.forEach(c=>rows.push({label:c,f:pct(film.filter(p=>p.concept===c).length,film.length),l:pct(live.filter(p=>p.concept===c).length,live.length)}));
+  return rows.sort((a,b)=>Math.abs(b.l-b.f)-Math.abs(a.l-a.f)).slice(0,6).map(r=>deltaLine(r.label,r.f,r.l)).join('');
+}
+function liveProblemHtml(live){
+  if(!live.length)return '<div class="empty-state">No live plays yet.</div>';
+  const bad=live.filter(p=>['l','xp','td'].includes(p.result));
+  if(!bad.length)return '<div class="trend-line"><b>No major damage logged</b><span>No 7+ yard results in the current live sample.</span></div>';
+  const concept=reportTop(bad), form=reportTop(bad,'formation'), pers=reportTop(bad,'personnel');
+  const rows=[
+    ['Damage plays',`${bad.length}/${live.length} (${pct(bad.length,live.length)}%)`],
+    ['Top damaging concept',concept?`${concept.name} · ${concept.n} plays`:'—'],
+    ['Top damaging formation',form?`${form.name} · ${form.n} plays`:'—'],
+    ['Top damaging personnel',pers?`${pers.name} · ${pers.n} plays`:'—']
+  ];
+  return rows.map(([a,b])=>`<div class="trend-line"><b>${a}</b><span>${b}</span></div>`).join('');
+}
+function pregameReportHtml(){
+  const film=ST.film;
+  if(!film.length)return '<div class="empty-state">Import film to generate the coaches-meeting packet.</div>';
+  const types=typeCounts(film), top=reportTop(film), form=reportTop(film,'formation'), pers=reportTop(film,'personnel');
+  const situations=[['1st Down',film.filter(p=>String(p.down)==='1')],['2nd Down',film.filter(p=>String(p.down)==='2')],['3rd & Short',film.filter(p=>String(p.down)==='3'&&p.dist==='short')],['3rd & Medium',film.filter(p=>String(p.down)==='3'&&p.dist==='normal')],['3rd & Long',film.filter(p=>String(p.down)==='3'&&['long','xlong'].includes(p.dist))],['Red Zone',film.filter(p=>['rz','gl'].includes(p.zone))]];
+  const sitRows=situations.map(([label,a])=>{const t=reportTop(a);return `<div class="trend-line"><b>${label}</b><span>${t?`${t.name} ${t.pct}% · Run ${pct(typeCounts(a).Run,a.length)}% · n=${a.length}`:'No sample'}</span></div>`}).join('');
+  const dna=coordinatorDna(film).map(x=>`<li>${esc(x)}</li>`).join('');
+  const history=historicalHalftimeInsights(film).map(x=>`<li>${esc(x)}</li>`).join('');
+  return `<div class="scout-cover"><div><div class="eyebrow">${esc(ST.week||'Pregame')} Defensive Scouting Report</div><h2>${esc(ST.teamName)} vs ${esc(ST.opp)}</h2><p class="muted">Film-only packet · ${film.length} plays · ${reliableLabel(film.length)} overall sample</p></div><div class="scout-badge">COACHES MEETING</div></div>
+  <div class="g4"><div class="kpi"><span class="kpi-val">${pct(types.Run,film.length)}%</span><div class="kpi-label">Run</div></div><div class="kpi"><span class="kpi-val">${pct(types.Pass+types.Screen,film.length)}%</span><div class="kpi-label">Pass / Screen</div></div><div class="kpi"><span class="kpi-val">${top?esc(top.name):'—'}</span><div class="kpi-label">Top Concept</div></div><div class="kpi"><span class="kpi-val">${form?esc(form.name):'—'}</span><div class="kpi-label">Top Formation</div></div></div>
+  <div class="g2"><div class="scout-box"><h3>Offensive Identity</h3><p>${esc(scoutIdentity(film).join(' '))}</p><div class="trend-line"><b>Most-used personnel</b><span>${pers?`${esc(pers.name)} · ${pers.pct}%`:'—'}</span></div><div class="trend-line"><b>Most-used formation</b><span>${form?`${esc(form.name)} · ${form.pct}%`:'—'}</span></div></div><div class="scout-box"><h3>Coordinator DNA</h3><ul>${dna}</ul></div></div>
+  <div class="g2"><div class="scout-box"><h3>Situation Plan</h3>${sitRows}</div><div class="scout-box"><h3>Likely Halftime Behavior</h3><ul>${history}</ul></div></div>
+  <div class="scout-box"><h3>Defensive Recommendations</h3><ul>${scoutDefensiveRecommendations(film).map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`;
+}
+function buildPregameReportText(){
+  const film=ST.film;if(!film.length)return 'No film loaded.';
+  const types=typeCounts(film), lines=[`${ST.teamName} vs ${ST.opp} — PREGAME COACHING REPORT`,`Film sample: ${film.length} plays (${reliableLabel(film.length)})`,`Identity: ${pct(types.Run,film.length)}% run · ${pct(types.Pass+types.Screen,film.length)}% pass/screen · ${pct(types.RPO,film.length)}% RPO`,'','COORDINATOR DNA'];
+  coordinatorDna(film).forEach(x=>lines.push(`- ${x}`));lines.push('','LIKELY HALFTIME BEHAVIOR');historicalHalftimeInsights(film).forEach(x=>lines.push(`- ${x}`));lines.push('','DEFENSIVE RECOMMENDATIONS');scoutDefensiveRecommendations(film).forEach(x=>lines.push(`- ${x}`));return lines.join('\n');
+}
+function copyPregameReport(){const t=buildPregameReportText();navigator.clipboard?.writeText(t).then(()=>toast('Pregame report copied'),()=>alert(t));}
+function printPregameReport(){
+  const w=window.open('','_blank');if(!w){toast('Popup blocked. Allow popups to print.',false);return;}
+  w.document.write(`<!doctype html><html><head><title>Pregame Report</title><style>body{font-family:Arial,sans-serif;color:#111;margin:24px}h2{margin:0}h3{border-bottom:2px solid #111;padding-bottom:4px}.g2,.g4{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.g4{grid-template-columns:repeat(4,1fr)}.scout-cover{display:flex;justify-content:space-between;border-bottom:4px solid #111;padding-bottom:12px;margin-bottom:16px}.scout-badge,.kpi,.scout-box{border:1px solid #999;padding:12px;margin-bottom:12px;break-inside:avoid}.kpi-val{font-size:24px;font-weight:900}.kpi-label{font-size:10px;text-transform:uppercase}.trend-line{display:flex;justify-content:space-between;border-bottom:1px solid #ddd;padding:6px 0;font-size:12px}.muted{color:#555}.eyebrow{text-transform:uppercase;font-size:11px;font-weight:bold}@media print{body{margin:12mm}}</style></head><body>${pregameReportHtml()}<script>window.onload=()=>window.print();<\/script></body></html>`);w.document.close();
+}
+function renderReports(){
+  const film=ST.film, live=ST.live;
+  if($('r-pregame'))$('r-pregame').innerHTML=pregameReportHtml();
+  if($('pregame-kpis'))$('pregame-kpis').innerHTML=[['Film plays',film.length],['Sample trust',reliableLabel(film.length)],['Top concept',reportTop(film)?.name||'—'],['Halftime history',(filterFirstHalf(film).length>=5&&filterSecondHalf(film).length>=5)?'Available':'Limited']].map(([l,v])=>`<div class="kpi"><span class="kpi-val">${esc(v)}</span><div class="kpi-label">${l}</div></div>`).join('');
+  if($('r-kpis'))$('r-kpis').innerHTML=[['Live plays',live.length],['Damage plays',live.filter(p=>['l','xp','td'].includes(p.result)).length],['Top-1 acc',live.length?Math.round(live.filter(p=>p.top1hit).length/live.length*100)+'%':'—'],['Top-3 acc',live.length?Math.round(live.filter(p=>p.top3hit).length/live.length*100)+'%':'—']].map(([l,v])=>`<div class="kpi"><span class="kpi-val">${v}</span><div class="kpi-label">${l}</div></div>`).join('');
+  if($('postgame-kpis'))$('postgame-kpis').innerHTML=[['Live plays',live.length],['Run/pass grade',live.length?Math.round(live.filter(p=>{const predType=typeOf(p.predicted);return predType===(p.type||typeOf(p.concept));}).length/live.length*100)+'%':'—'],['Top-1',live.length?pct(live.filter(p=>p.top1hit).length,live.length)+'%':'—'],['Top-3',live.length?pct(live.filter(p=>p.top3hit).length,live.length)+'%':'—']].map(([l,v])=>`<div class="kpi"><span class="kpi-val">${v}</span><div class="kpi-label">${l}</div></div>`).join('');
+  if($('r-changes'))$('r-changes').innerHTML=biggestFilmLiveChanges(film,live);
+  if($('r-problems'))$('r-problems').innerHTML=liveProblemHtml(live);
+  if($('r-history'))$('r-history').innerHTML=historicalHalftimeInsights(film).map(x=>`<div class="trend-line"><span>${esc(x)}</span></div>`).join('');
   if($('r-star'))$('r-star').innerHTML=renderStarReport();
   if($('r-halftime'))$('r-halftime').textContent=buildHalftime();
+  if($('r-usage'))$('r-usage').innerHTML=live.length?statBars(countBy(live,'concept'),live.length):'<div class="empty-state">No live plays yet.</div>';
+  const sits={};live.forEach(p=>{let k=`${p.down}/${DIST_LABEL[p.dist]||p.dist}`;(sits[k]??=[]).push(p);});
+  if($('r-sits'))$('r-sits').innerHTML=Object.entries(sits).map(([k,a])=>`<div class="trend-line"><b>${k}</b><span>${topEntry(countBy(a,'concept'))?.[0]||'—'} (${a.length})</span></div>`).join('')||'<div class="empty-state">No live situations yet.</div>';
+  if($('r-accuracy'))$('r-accuracy').innerHTML=live.length?`<div class="trend-line"><b>Top-1</b><span>${live.filter(p=>p.top1hit).length}/${live.length}</span></div><div class="trend-line"><b>Top-3</b><span>${live.filter(p=>p.top3hit).length}/${live.length}</span></div><div class="trend-line"><b>Run / pass family</b><span>${live.filter(p=>typeOf(p.predicted)===(p.type||typeOf(p.concept))).length}/${live.length}</span></div>`:'<div class="empty-state">No graded plays yet.</div>';
+  if($('r-dna'))$('r-dna').innerHTML=coordinatorDna([...film,...live]).map(x=>`<div class="trend-line"><span>${esc(x)}</span></div>`).join('');
+  setReportViewDisplayOnly();
 }
-
+function setReportViewDisplayOnly(){
+  ['pregame','halftime','postgame'].forEach(v=>{const panel=$('report-view-'+v),btn=$('report-tab-'+v);if(panel)panel.style.display=v===reportView?'block':'none';if(btn)btn.classList.toggle('btn-primary',v===reportView);});
+}
 function renderStarReport(){
   if(!ST.star.on)return'<div class="empty-state">Star player factor is off. Enable in Setup.</div>';
-  let st=starStats();
-  let rate=(arr,fn)=>arr.length?Math.round(arr.filter(fn).length/arr.length*100)+'%':'—';
-  let touch=p=>ST.star.touch.includes(p.concept);
-  let topOn=topEntry(countBy(st.on,'concept')), topOff=topEntry(countBy(st.off,'concept'));
-  return `
-    <div class="trend-line"><b>${esc(ST.star.name||ST.star.pos)}</b><span>${st.onN} ON / ${st.offN} OFF · ${Math.round(st.trust*100)}% trust</span></div>
-    <div class="trend-line"><b>Touch rate</b><span>ON ${rate(st.on,touch)} vs OFF ${rate(st.off,touch)} (${st.touchDelta>=0?'+':''}${Math.round(st.touchDelta*100)}%)</span></div>
-    <div class="trend-line"><b>Run rate</b><span>ON ${rate(st.on,p=>typeOf(p.concept)==='Run')} vs OFF ${rate(st.off,p=>typeOf(p.concept)==='Run')} (${st.runDelta>=0?'+':''}${Math.round(st.runDelta*100)}%)</span></div>
-    <div class="trend-line"><b>Top ON</b><span>${topOn?topOn[0]:'—'}</span></div>
-    <div class="trend-line"><b>Top OFF</b><span>${topOff?topOff[0]:'—'}</span></div>`;
+  let st=starStats(), liveOn=ST.live.filter(p=>p.star==='on'), liveOff=ST.live.filter(p=>p.star==='off');
+  let rate=(arr,fn)=>arr.length?Math.round(arr.filter(fn).length/arr.length*100)+'%':'—', touch=p=>ST.star.touch.includes(p.concept);
+  return `<div class="trend-line"><b>${esc(ST.star.name||ST.star.pos)}</b><span>${liveOn.length} ON / ${liveOff.length} OFF tonight</span></div><div class="trend-line"><b>Touch rate</b><span>ON ${rate(liveOn,touch)} vs OFF ${rate(liveOff,touch)}</span></div><div class="trend-line"><b>Run rate</b><span>ON ${rate(liveOn,p=>typeOf(p.concept)==='Run')} vs OFF ${rate(liveOff,p=>typeOf(p.concept)==='Run')}</span></div><div class="trend-line"><b>Historical trust</b><span>${Math.round(st.trust*100)}%</span></div>`;
 }
-
 function buildHalftime(){
-  let all=[...ST.film,...ST.live], scope=ST.live.length?ST.live:all;
-  if(!scope.length)return'No data yet.';
-  let sp=splitFromData(scope), preds=computePreds();
-  let third=scope.filter(p=>p.down==='3'), thirdLong=scope.filter(p=>p.down==='3'&&['long','xlong'].includes(p.dist));
-  let rz=scope.filter(p=>['rz','gl'].includes(p.zone));
-  let explosive=scope.filter(p=>['xp','td'].includes(p.result));
-  let byPers=countBy(scope,'personnel'), pTop=topEntry(byPers);
-  let lines=[];
-  lines.push(`${ST.opp||'OPPONENT'} HALFTIME / DRIVE SHEET`);
-  lines.push(`Sample: ${scope.length} ${ST.live.length?'live':'film'} plays`);
-  lines.push(`RUN/PASS/RPO: ${pct(sp.run,scope.length)}% run · ${pct(sp.pass,scope.length)}% pass · ${pct(sp.rpo,scope.length)}% RPO`);
-  lines.push('');
-  lines.push('TOP CALLS');
-  let top=topEntry(countBy(scope,'concept'));
-  if(top)lines.push(`Overall: ${top[0]} ${pct(top[1],scope.length)}% (${top[1]}/${scope.length})`);
-  if(pTop){let a=scope.filter(p=>p.personnel===pTop[0]);let tc=topEntry(countBy(a,'concept'));if(tc)lines.push(`${pTop[0]} personnel: ${tc[0]} ${pct(tc[1],a.length)}%`);}
-  if(thirdLong.length){let tc=topEntry(countBy(thirdLong,'concept'));if(tc)lines.push(`3rd + long: ${tc[0]} ${pct(tc[1],thirdLong.length)}% (${thirdLong.length})`);}
-  if(rz.length){let tc=topEntry(countBy(rz,'concept'));if(tc)lines.push(`Red zone: ${tc[0]} ${pct(tc[1],rz.length)}% (${rz.length})`);}
-  lines.push('');
-  lines.push('ALERTS');
-  threatTags(preds).forEach(([t])=>lines.push(`- ${t}`));
-  lines.push(`- ${persAlert().text}`);
-  lines.push(`- ${explosiveRisk().text}`);
-  lines.push(`- ${lastFiveLine()}`);
-  lines.push('');
-  lines.push('DANGER');
-  lines.push(`Explosives: ${explosive.length}/${scope.length}. Negatives: ${scope.filter(p=>p.result==='neg').length}/${scope.length}`);
-  lines.push(`Prediction board: ${preds.slice(0,3).map(p=>`${p.name} ${Math.round(p.pct*100)}%`).join(' / ')}`);
-  lines.push('');
-  lines.push(`ADJUSTMENT: ${narrativeText(preds,confidence(preds))}`);
+  const live=ST.live, film=ST.film;if(!live.length)return'No live plays logged yet. Pregame film is intentionally excluded from the halftime totals.';
+  const sp=typeCounts(live), bad=live.filter(p=>['l','xp','td'].includes(p.result)), lines=[];
+  lines.push(`${ST.opp||'OPPONENT'} HALFTIME ADJUSTMENT REPORT`);lines.push(`Live sample: ${live.length} plays (${reliableLabel(live.length)} live sample)`);lines.push(`TONIGHT: ${pct(sp.Run,live.length)}% run · ${pct(sp.Pass+sp.Screen,live.length)}% pass/screen · ${pct(sp.RPO,live.length)}% RPO`);
+  if(film.length){const fs=typeCounts(film);lines.push(`FILM: ${pct(fs.Run,film.length)}% run · ${pct(fs.Pass+fs.Screen,film.length)}% pass/screen · ${pct(fs.RPO,film.length)}% RPO`);}
+  lines.push('','BIGGEST CHANGES');
+  if(film.length){const temp=document.createElement('div');temp.innerHTML=biggestFilmLiveChanges(film,live);Array.from(temp.querySelectorAll('.trend-line')).slice(0,4).forEach(x=>lines.push(`- ${x.textContent.replace(/\s+/g,' ').trim()}`));}else lines.push('- No film comparison available.');
+  lines.push('','WHERE THEY ARE HURTING US');
+  if(bad.length){const c=reportTop(bad),f=reportTop(bad,'formation'),p=reportTop(bad,'personnel');lines.push(`- ${bad.length}/${live.length} plays gained 7+ yards.`);if(c)lines.push(`- Damage concept: ${c.name} (${c.n}).`);if(f)lines.push(`- Damage formation: ${f.name} (${f.n}).`);if(p)lines.push(`- Damage personnel: ${p.name} (${p.n}).`);}else lines.push('- No 7+ yard damage plays logged.');
+  lines.push('','LIKELY SECOND-HALF RESPONSE FROM FILM');historicalHalftimeInsights(film).forEach(x=>lines.push(`- ${x}`));
+  lines.push('','COACHING ADJUSTMENTS');
+  const topBad=reportTop(bad);if(topBad)lines.push(`- First priority: remove ${topBad.name}; it leads the damaging-play sample.`);
+  const liveTop=reportTop(live);if(liveTop)lines.push(`- Base alert: ${liveTop.name} is tonight's most common call at ${liveTop.pct}%.`);
+  if(film.length){const ft=typeCounts(film),runD=pct(sp.Run,live.length)-pct(ft.Run,film.length);if(runD>=12)lines.push('- Fit the run first: tonight is materially more run-heavy than film.');if(runD<=-12)lines.push('- Protect coverage structure: tonight is materially more pass-heavy than film.');}
+  lines.push(`- Confidence reminder: ${reliableLabel(live.length)} live sample; do not overreact to one isolated call.`);
   return lines.join('\n');
 }
-
-function copyHalftime(){ let t=buildHalftime(); navigator.clipboard?.writeText(t).then(()=>toast('Halftime sheet copied'),()=>alert(t)); }
+function copyHalftime(){let t=buildHalftime();navigator.clipboard?.writeText(t).then(()=>toast('Halftime report copied'),()=>alert(t));}
 
 // ─── COACH CARD ────────────────────────────────────────────────
 function copyCoachCard(){
