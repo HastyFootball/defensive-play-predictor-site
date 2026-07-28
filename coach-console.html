@@ -1390,16 +1390,40 @@ function baseBias(c){
   return Math.max(.02,s);
 }
 
+function usable(v){ return v!==undefined&&v!==null&&String(v).trim()!==''&&String(v)!=='unknown'; }
+function sameField(p,key,value){ return usable(value)&&usable(p[key])&&String(p[key])===String(value); }
+function conceptRate(arr,c,priorRate=.08,priorN=6){
+  if(!arr.length) return priorRate;
+  let hits=arr.filter(p=>p.concept===c).length;
+  return (hits+priorRate*priorN)/(arr.length+priorN);
+}
 function matchScore(arr, c){
   if(!arr.length) return 0;
   let cur=currentSit();
-  let exact=arr.filter(p=>p.down===cur.down&&p.dist===cur.dist&&p.zone===cur.zone);
-  let dd=arr.filter(p=>p.down===cur.down&&p.dist===cur.dist);
-  let pers=arr.filter(p=>p.personnel===cur.personnel);
-  let frm=arr.filter(p=>ST.groupForms?formFam(p.formation)===cur.formFam:p.formation===cur.formation);
-  let phase=arr.filter(p=>p.phase===cur.phase);
-  let rate=a=>a.length?a.filter(p=>p.concept===c).length/a.length:0;
-  return rate(exact)*.28+rate(dd)*.22+rate(pers)*.13+rate(frm)*.13+rate(phase)*.09+rate(arr)*.15;
+  let overall=arr.filter(p=>p.concept===c).length/arr.length;
+  let groups=[
+    {w:.24,a:arr.filter(p=>p.down===cur.down&&p.dist===cur.dist&&p.zone===cur.zone),prior:4},
+    {w:.18,a:arr.filter(p=>p.down===cur.down&&p.dist===cur.dist),prior:5},
+    {w:.12,a:arr.filter(p=>sameField(p,'personnel',cur.personnel)),prior:6},
+    {w:.12,a:arr.filter(p=>usable(cur.formation)&&usable(p.formation)&&(ST.groupForms?formFam(p.formation)===cur.formFam:p.formation===cur.formation)),prior:6},
+    {w:.08,a:arr.filter(p=>sameField(p,'score',cur.score)),prior:7},
+    {w:.07,a:arr.filter(p=>sameField(p,'phase',cur.phase)),prior:7},
+    {w:.05,a:arr.filter(p=>sameField(p,'tempo',cur.tempo)),prior:8},
+    {w:.04,a:arr.filter(p=>sameField(p,'hash',cur.hash)),prior:8},
+    {w:.04,a:arr.filter(p=>sameField(p,'strength',cur.strength)),prior:8},
+    {w:.06,a:arr,prior:8}
+  ];
+  let used=groups.filter(g=>g.a.length||g.a===arr), weight=used.reduce((n,g)=>n+g.w,0)||1;
+  return used.reduce((sum,g)=>sum+conceptRate(g.a,c,overall,g.prior)*g.w,0)/weight;
+}
+
+function situationSupport(arr){
+  let cur=currentSit();
+  let exact=arr.filter(p=>p.down===cur.down&&p.dist===cur.dist&&p.zone===cur.zone).length;
+  let dd=arr.filter(p=>p.down===cur.down&&p.dist===cur.dist).length;
+  let pers=arr.filter(p=>sameField(p,'personnel',cur.personnel)).length;
+  let frm=arr.filter(p=>usable(cur.formation)&&usable(p.formation)&&(ST.groupForms?formFam(p.formation)===cur.formFam:p.formation===cur.formation)).length;
+  return {exact,dd,pers,frm,score:exact*3+dd*1.7+pers*.55+frm*.55};
 }
 
 function prevBucket(p){ if(!p)return'';
@@ -1451,12 +1475,16 @@ function computePreds(){
   let ac = activeConcepts();
   let concepts = ac.length ? ac : DEFAULT_ACTIVE.filter(c=>!(ST.deletedConcepts||[]).includes(c));
   let lw=liveWeight(), fw=1-lw, hasF=ST.film.length>0, hasL=ST.live.length>0;
+  let filmSupport=situationSupport(ST.film).score, liveSupport=situationSupport(ST.live).score;
+  let filmTrust=Math.min(1,filmSupport/18), liveTrust=Math.min(1,liveSupport/12);
   let scores = concepts.map(c=>{
     let base=baseBias(c), film=hasF?matchScore(ST.film,c):0, live=hasL?matchScore(ST.live,c):0;
+    let filmBlend=film*filmTrust+base*(1-filmTrust);
+    let liveBlend=live*liveTrust+base*(1-liveTrust);
     let score = !hasF&&!hasL ? base
-      : !hasF ? live*.74+base*.26
-      : !hasL ? film*.74+base*.26
-      : fw*(film*.67+base*.33)+lw*(live*.70+base*.30);
+      : !hasF ? liveBlend
+      : !hasL ? filmBlend
+      : fw*filmBlend+lw*liveBlend;
     score += seqBoost(c) + starAdj(c);
     return {name:c, type:typeOf(c), score:Math.max(.001,score)};
   });
@@ -1465,9 +1493,12 @@ function computePreds(){
 }
 
 function confidence(preds){
-  let n=ST.live.length+ST.film.length, top=preds[0]?.pct||0, lead=top-(preds[1]?.pct||0);
-  if(n>=20&&top>=.35&&lead>.12)return'High confidence';
-  if(n>=8&&top>=.25&&lead>.07)return'Medium confidence';
+  let film=situationSupport(ST.film), live=situationSupport(ST.live);
+  let support=film.score+live.score*1.25;
+  let exact=film.exact+live.exact, dd=film.dd+live.dd;
+  let top=preds[0]?.pct||0, lead=top-(preds[1]?.pct||0);
+  if(support>=28&&exact>=4&&top>=.30&&lead>.09)return'High confidence';
+  if(support>=12&&(exact>=2||dd>=5)&&top>=.22&&lead>.045)return'Medium confidence';
   return'Low confidence';
 }
 
