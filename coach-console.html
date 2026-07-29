@@ -1149,6 +1149,8 @@ input[type=file] { background: transparent; border: none; padding: 0; }
       <div class="card"><div class="card-title">Where We Are Getting Hurt</div><div id="r-problems"></div></div>
       <div class="card"><div class="card-title">Historical Halftime Adjustments</div><div id="r-history"></div></div>
       <div class="card"><div class="card-title">Star ON / OFF Tonight</div><div id="r-star"></div></div>
+      <div class="card"><div class="card-title">Hidden Tendencies Tonight</div><div id="r-hidden-live"></div></div>
+      <div class="card"><div class="card-title">Sequence Alerts Tonight</div><div id="r-sequences-live"></div></div>
     </div>
     <div class="card">
       <div class="row" style="justify-content:space-between;margin-bottom:12px">
@@ -1166,6 +1168,8 @@ input[type=file] { background: transparent; border: none; padding: 0; }
       <div class="card"><div class="card-title">Live Concept Usage</div><div id="r-usage"></div></div>
       <div class="card"><div class="card-title">Situational Tendencies</div><div id="r-sits"></div></div>
       <div class="card"><div class="card-title">Coordinator DNA Learned</div><div id="r-dna"></div></div>
+      <div class="card"><div class="card-title">Hidden Tendencies Learned</div><div id="r-hidden-post"></div></div>
+      <div class="card"><div class="card-title">Sequence Recognition</div><div id="r-sequences-post"></div></div>
     </div>
   </div>
 </section>
@@ -2393,6 +2397,98 @@ function sequenceRows(arr){
   }
   return Object.entries(pairs).sort((a,b)=>b[1]-a[1]);
 }
+function resultSuccess(p){ return ['m','l','xp','td'].includes(String(p?.result||'')); }
+function resultExplosive(p){ return ['xp','td'].includes(String(p?.result||'')); }
+function directionName(v){
+  const x=String(v||'').trim().toUpperCase();
+  if(x==='L'||x==='LEFT')return 'left';
+  if(x==='R'||x==='RIGHT')return 'right';
+  if(x==='M'||x==='MID'||x==='MIDDLE'||x==='C'||x==='CENTER')return 'middle';
+  return '';
+}
+function gapName(v){
+  const x=String(v||'').trim().toUpperCase();
+  if(!x)return '';
+  return x==='EDGE'?'Edge':`${x} gap`;
+}
+function sampleRate(arr,fn){ return arr.length?pct(arr.filter(fn).length,arr.length):0; }
+function groupedPerformance(arr,keyFn,minSample=3){
+  const groups={};
+  arr.forEach(p=>{const k=keyFn(p);if(!k)return;(groups[k]??=[]).push(p);});
+  return Object.entries(groups).map(([name,plays])=>({name,plays,n:plays.length,success:sampleRate(plays,resultSuccess),explosive:sampleRate(plays,resultExplosive)})).filter(x=>x.n>=minSample).sort((a,b)=>(b.success-a.success)||(b.explosive-a.explosive)||(b.n-a.n));
+}
+function addInsight(out,text,n,effect=0,kind='Tendency'){
+  if(!text||n<3)return;
+  const confidence=n>=12?'Strong':n>=7?'Moderate':'Early';
+  out.push({text,n,effect,kind,confidence,score:(Math.min(n,15)*2)+Math.abs(effect)});
+}
+function hiddenTendencies(arr){
+  if(!arr||arr.length<4)return [];
+  const out=[];
+  const truePass=arr.filter(p=>{const t=p.type||typeOf(p.concept);return t==='Pass'&&!/screen/i.test(String(p.concept||''));});
+  const passDirs=groupedPerformance(truePass,p=>directionName(p.direction),3);
+  if(truePass.length>=5&&passDirs.length){
+    const usage={};truePass.forEach(p=>{const d=directionName(p.direction);if(d)usage[d]=(usage[d]||0)+1;});
+    const top=Object.entries(usage).sort((a,b)=>b[1]-a[1])[0];
+    if(top&&top[1]>=3){const rate=pct(top[1],truePass.filter(p=>directionName(p.direction)).length);if(rate>=55)addInsight(out,`QB favors the ${top[0]} on non-screen passes: ${rate}% (${top[1]} of ${truePass.filter(p=>directionName(p.direction)).length}).`,top[1],rate-33,'Pass Direction');}
+    const best=passDirs[0], worst=passDirs[passDirs.length-1];
+    if(best&&worst&&best.name!==worst.name&&best.success-worst.success>=20)addInsight(out,`Non-screen passes are most successful to the ${best.name}: ${best.success}% success versus ${worst.success}% to the ${worst.name}.`,best.n,best.success-worst.success,'Pass Success');
+  }
+  const runs=arr.filter(p=>(p.type||typeOf(p.concept))==='Run');
+  const runDirs=groupedPerformance(runs,p=>directionName(p.direction),3);
+  if(runDirs.length){const best=runDirs[0], next=runDirs[1];if(best&&(!next||best.success-next.success>=15||best.success>=60))addInsight(out,`Run game is producing best to the ${best.name}: ${best.success}% successful with ${best.explosive}% explosive (${best.n} carries).`,best.n,next?best.success-next.success:best.success,'Run Direction');}
+  const gaps=groupedPerformance(runs,p=>gapName(p.gap),3);
+  if(gaps.length){const best=gaps[0], next=gaps[1];if(best&&(!next||best.success-next.success>=15||best.explosive>=25))addInsight(out,`${best.name} is the strongest run lane: ${best.success}% successful and ${best.explosive}% explosive (${best.n} carries).`,best.n,next?best.success-next.success:best.success,'Gap Production');}
+  const forms=groupedPerformance(arr,p=>p.formation,4);
+  if(forms.length){const best=forms[0], next=forms[1];if(best&&best.success>=55)addInsight(out,`${best.name} is their most productive formation: ${best.success}% successful (${best.n} plays).`,best.n,next?best.success-next.success:best.success,'Formation Production');}
+  const pers=groupedPerformance(arr,p=>p.personnel,4);
+  if(pers.length){const best=pers[0], next=pers[1];if(best&&best.success>=55)addInsight(out,`${best.name} personnel is producing ${best.success}% successful plays (${best.n} snaps).`,best.n,next?best.success-next.success:best.success,'Personnel Production');}
+  const concepts=groupedPerformance(arr,p=>p.concept,3);
+  if(concepts.length){const best=concepts[0];if(best.success>=60)addInsight(out,`${best.name} is their most efficient repeated call: ${best.success}% successful with ${best.explosive}% explosive (${best.n} calls).`,best.n,best.success-50,'Concept Production');}
+  const badConcepts=concepts.slice().sort((a,b)=>(a.success-b.success)||(b.n-a.n));
+  if(badConcepts[0]&&badConcepts[0].success<=25&&badConcepts[0].n>=4)addInsight(out,`${badConcepts[0].name} has struggled: only ${badConcepts[0].success}% successful (${badConcepts[0].n} calls).`,badConcepts[0].n,50-badConcepts[0].success,'Failed Concept');
+  return out.sort((a,b)=>b.score-a.score).filter((x,i,a)=>a.findIndex(y=>y.text===x.text)===i).slice(0,8);
+}
+function sequenceInsights(arr){
+  if(!arr||arr.length<5)return [];
+  const out=[];
+  const transitions={};
+  for(let i=1;i<arr.length;i++){
+    const prev=arr[i-1],cur=arr[i];if(!prev?.concept||!cur?.concept)continue;
+    const key=prev.concept;transitions[key]??={total:0,next:{}};transitions[key].total++;transitions[key].next[cur.concept]=(transitions[key].next[cur.concept]||0)+1;
+  }
+  Object.entries(transitions).forEach(([prev,v])=>{
+    const top=Object.entries(v.next).sort((a,b)=>b[1]-a[1])[0];if(!top||v.total<3)return;
+    const rate=pct(top[1],v.total);if(top[1]>=3&&rate>=45)addInsight(out,`After ${prev}, expect ${top[0]}: ${rate}% of the next calls (${top[1]} of ${v.total}).`,v.total,rate-25,'Call Sequence');
+  });
+  const contexts=[
+    ['a negative play',p=>p.result==='neg'],
+    ['an explosive play',p=>resultExplosive(p)],
+    ['a successful run',p=>(p.type||typeOf(p.concept))==='Run'&&resultSuccess(p)],
+    ['two consecutive runs',(_,i,a)=>i>=1&&(a[i-1].type||typeOf(a[i-1].concept))==='Run']
+  ];
+  contexts.forEach(([label,test])=>{
+    const next=[];
+    for(let i=0;i<arr.length-1;i++)if(test(arr[i],i,arr))next.push(arr[i+1]);
+    if(next.length<3)return;
+    const top=reportTop(next);if(top&&top.n>=3&&top.pct>=45)addInsight(out,`After ${label}, the next call is most often ${top.name}: ${top.pct}% (${top.n} of ${next.length}).`,next.length,top.pct-25,'Response Pattern');
+    const tc=typeCounts(next), passRate=pct(tc.Pass+tc.Screen+tc.RPO,next.length), runRate=pct(tc.Run,next.length);
+    if(passRate>=70)addInsight(out,`After ${label}, they answer through the air ${passRate}% of the time (${next.length} samples).`,next.length,passRate-50,'Response Pattern');
+    if(runRate>=70)addInsight(out,`After ${label}, they return to the run ${runRate}% of the time (${next.length} samples).`,next.length,runRate-50,'Response Pattern');
+  });
+  let runStreak=0,passStreak=0,maxRun=0,maxPass=0;
+  arr.forEach(p=>{const t=p.type||typeOf(p.concept);if(t==='Run'){runStreak++;passStreak=0}else if(['Pass','Screen','RPO'].includes(t)){passStreak++;runStreak=0}else{runStreak=passStreak=0}maxRun=Math.max(maxRun,runStreak);maxPass=Math.max(maxPass,passStreak);});
+  if(maxRun>=4)addInsight(out,`They showed a run streak of ${maxRun} consecutive calls.`,maxRun,maxRun*5,'Momentum');
+  if(maxPass>=4)addInsight(out,`They showed a pass/RPO streak of ${maxPass} consecutive calls.`,maxPass,maxPass*5,'Momentum');
+  return out.sort((a,b)=>b.score-a.score).filter((x,i,a)=>a.findIndex(y=>y.text===x.text)===i).slice(0,8);
+}
+function insightHtml(items,empty='No pattern has cleared the minimum sample yet.'){
+  if(!items.length)return `<div class="empty-state">${esc(empty)}</div>`;
+  return items.map(x=>`<div class="trend-line ${x.confidence==='Strong'?'alert-high':x.confidence==='Moderate'?'alert-med':''}"><b>${esc(x.kind)}</b><span>${esc(x.text)} <small>· ${x.confidence}</small></span></div>`).join('');
+}
+function topFiveThings(arr){
+  return [...hiddenTendencies(arr),...sequenceInsights(arr)].sort((a,b)=>b.score-a.score).filter((x,i,a)=>a.findIndex(y=>y.text===x.text)===i).slice(0,5);
+}
 function coordinatorDna(arr){
   if(arr.length<5)return ['Not enough film to establish coordinator habits yet.'];
   const lines=[];
@@ -2460,12 +2556,14 @@ function pregameReportHtml(){
   <div class="g4"><div class="kpi"><span class="kpi-val">${pct(types.Run,film.length)}%</span><div class="kpi-label">Run</div></div><div class="kpi"><span class="kpi-val">${pct(types.Pass+types.Screen,film.length)}%</span><div class="kpi-label">Pass / Screen</div></div><div class="kpi"><span class="kpi-val">${top?esc(top.name):'—'}</span><div class="kpi-label">Top Concept</div></div><div class="kpi"><span class="kpi-val">${form?esc(form.name):'—'}</span><div class="kpi-label">Top Formation</div></div></div>
   <div class="g2"><div class="scout-box"><h3>Offensive Identity</h3><p>${esc(scoutIdentity(film).join(' '))}</p><div class="trend-line"><b>Most-used personnel</b><span>${pers?`${esc(pers.name)} · ${pers.pct}%`:'—'}</span></div><div class="trend-line"><b>Most-used formation</b><span>${form?`${esc(form.name)} · ${form.pct}%`:'—'}</span></div></div><div class="scout-box"><h3>Coordinator DNA</h3><ul>${dna}</ul></div></div>
   <div class="g2"><div class="scout-box"><h3>Situation Plan</h3>${sitRows}</div><div class="scout-box"><h3>Likely Halftime Behavior</h3><ul>${history}</ul></div></div>
+  <div class="g2"><div class="scout-box"><h3>Hidden Tendencies</h3>${insightHtml(hiddenTendencies(film))}</div><div class="scout-box"><h3>Sequence Recognition</h3>${insightHtml(sequenceInsights(film))}</div></div>
+  <div class="scout-box"><h3>Five Things the DC Needs to Know</h3><ol>${topFiveThings(film).map(x=>`<li>${esc(x.text)}</li>`).join('')||'<li>No pattern has cleared the minimum sample yet.</li>'}</ol></div>
   <div class="scout-box"><h3>Defensive Recommendations</h3><ul>${scoutDefensiveRecommendations(film).map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`;
 }
 function buildPregameReportText(){
   const film=ST.film;if(!film.length)return 'No film loaded.';
   const types=typeCounts(film), lines=[`${ST.teamName} vs ${ST.opp} — PREGAME COACHING REPORT`,`Film sample: ${film.length} plays (${reliableLabel(film.length)})`,`Identity: ${pct(types.Run,film.length)}% run · ${pct(types.Pass+types.Screen,film.length)}% pass/screen · ${pct(types.RPO,film.length)}% RPO`,'','COORDINATOR DNA'];
-  coordinatorDna(film).forEach(x=>lines.push(`- ${x}`));lines.push('','LIKELY HALFTIME BEHAVIOR');historicalHalftimeInsights(film).forEach(x=>lines.push(`- ${x}`));lines.push('','DEFENSIVE RECOMMENDATIONS');scoutDefensiveRecommendations(film).forEach(x=>lines.push(`- ${x}`));return lines.join('\n');
+  coordinatorDna(film).forEach(x=>lines.push(`- ${x}`));lines.push('','HIDDEN TENDENCIES');hiddenTendencies(film).forEach(x=>lines.push(`- ${x.text}`));lines.push('','SEQUENCE RECOGNITION');sequenceInsights(film).forEach(x=>lines.push(`- ${x.text}`));lines.push('','FIVE THINGS THE DC NEEDS TO KNOW');topFiveThings(film).forEach((x,i)=>lines.push(`${i+1}. ${x.text}`));lines.push('','LIKELY HALFTIME BEHAVIOR');historicalHalftimeInsights(film).forEach(x=>lines.push(`- ${x}`));lines.push('','DEFENSIVE RECOMMENDATIONS');scoutDefensiveRecommendations(film).forEach(x=>lines.push(`- ${x}`));return lines.join('\n');
 }
 function copyPregameReport(){const t=buildPregameReportText();navigator.clipboard?.writeText(t).then(()=>toast('Pregame report copied'),()=>alert(t));}
 function printPregameReport(){
@@ -2483,6 +2581,10 @@ function renderReports(){
   if($('r-problems'))$('r-problems').innerHTML=liveProblemHtml(live);
   if($('r-history'))$('r-history').innerHTML=historicalHalftimeInsights(film).map(x=>`<div class="trend-line"><span>${esc(x)}</span></div>`).join('');
   if($('r-star'))$('r-star').innerHTML=renderStarReport();
+  if($('r-hidden-live'))$('r-hidden-live').innerHTML=insightHtml(hiddenTendencies(live),'Log more live plays to reveal directional and production patterns.');
+  if($('r-sequences-live'))$('r-sequences-live').innerHTML=insightHtml(sequenceInsights(live),'Log more live plays to reveal call sequences.');
+  if($('r-hidden-post'))$('r-hidden-post').innerHTML=insightHtml(hiddenTendencies(live),'No live pattern has cleared the minimum sample.');
+  if($('r-sequences-post'))$('r-sequences-post').innerHTML=insightHtml(sequenceInsights(live),'No live sequence has cleared the minimum sample.');
   if($('r-halftime'))$('r-halftime').textContent=buildHalftime();
   if($('r-usage'))$('r-usage').innerHTML=live.length?statBars(countBy(live,'concept'),live.length):'<div class="empty-state">No live plays yet.</div>';
   const sits={};live.forEach(p=>{let k=`${p.down}/${DIST_LABEL[p.dist]||p.dist}`;(sits[k]??=[]).push(p);});
@@ -2509,6 +2611,9 @@ function buildHalftime(){
   if(film.length){const temp=document.createElement('div');temp.innerHTML=biggestFilmLiveChanges(film,live);Array.from(temp.querySelectorAll('.trend-line')).slice(0,4).forEach(x=>lines.push(`- ${x.textContent.replace(/\s+/g,' ').trim()}`));}else lines.push('- No film comparison available.');
   lines.push('','WHERE THEY ARE HURTING US');
   if(bad.length){const c=reportTop(bad),f=reportTop(bad,'formation'),p=reportTop(bad,'personnel');lines.push(`- ${bad.length}/${live.length} plays gained 7+ yards.`);if(c)lines.push(`- Damage concept: ${c.name} (${c.n}).`);if(f)lines.push(`- Damage formation: ${f.name} (${f.n}).`);if(p)lines.push(`- Damage personnel: ${p.name} (${p.n}).`);}else lines.push('- No 7+ yard damage plays logged.');
+  lines.push('','HIDDEN TENDENCIES TONIGHT');const hidden=hiddenTendencies(live);if(hidden.length)hidden.slice(0,5).forEach(x=>lines.push(`- ${x.text}`));else lines.push('- No directional or production pattern has cleared the sample threshold yet.');
+  lines.push('','SEQUENCE ALERTS TONIGHT');const seqNow=sequenceInsights(live);if(seqNow.length)seqNow.slice(0,5).forEach(x=>lines.push(`- ${x.text}`));else lines.push('- No repeatable sequence has cleared the sample threshold yet.');
+  lines.push('','FIVE THINGS THE DC NEEDS TO KNOW');const five=topFiveThings(live);if(five.length)five.forEach((x,i)=>lines.push(`${i+1}. ${x.text}`));else lines.push('- Keep charting; the live sample is still too small.');
   lines.push('','LIKELY SECOND-HALF RESPONSE FROM FILM');historicalHalftimeInsights(film).forEach(x=>lines.push(`- ${x}`));
   lines.push('','COACHING ADJUSTMENTS');
   const topBad=reportTop(bad);if(topBad)lines.push(`- First priority: remove ${topBad.name}; it leads the damaging-play sample.`);
