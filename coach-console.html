@@ -313,6 +313,29 @@ tr:hover td { background: rgba(16,31,59,.6); }
 .sideline-mode .box-panel { display: none !important; }
 .sideline-mode .app { padding-top: 0; }
 .sideline-mode .pred-name { font-size: clamp(44px, 12vw, 96px); }
+
+/* True game fullscreen controls */
+.game-fullscreen-mode .nav,
+.game-fullscreen-mode .page-header,
+.game-fullscreen-mode #topRibbon { display:none !important; }
+.game-fullscreen-mode .app { padding:12px !important; max-width:none !important; width:100% !important; }
+.game-fullscreen-mode #page-game { display:block !important; min-height:100vh; }
+.game-fullscreen-mode #boxPanel,
+.game-fullscreen-mode #sidelinePanel { width:100%; max-width:none; }
+.game-fullscreen-mode #gameFullscreenDock { display:flex !important; }
+#gameFullscreenDock{
+  display:none; position:fixed; right:14px; top:14px; z-index:99999;
+  gap:8px; align-items:center; padding:8px;
+  background:rgba(3,10,20,.90); border:1px solid var(--line);
+  border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.38);
+  backdrop-filter:blur(10px);
+}
+#gameFullscreenDock .btn{white-space:nowrap}
+@media(max-width:700px){
+  #gameFullscreenDock{right:8px;top:8px;padding:6px;gap:5px}
+  #gameFullscreenDock .btn{font-size:10px;padding:8px 9px}
+}
+
 .sideline-mode .pred-pct { font-size: clamp(32px, 8vw, 72px); }
 .sideline-big-btns { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-top: 12px; }
 .sideline-btn {
@@ -727,10 +750,17 @@ input[type=file] { background: transparent; border: none; padding: 0; }
       </div>
       <div class="row">
         <button class="btn btn-sm" id="modeToggleBtn" onclick="toggleMode()">Switch to Sideline</button>
-        <button class="btn btn-sm" id="sidelineFullBtn" onclick="toggleSideline()">Fullscreen sideline</button>
+        <button class="btn btn-sm" id="boxFullBtn" onclick="enterGameFullscreen('box')">Fullscreen Box</button>
+        <button class="btn btn-sm" id="sidelineFullBtn" onclick="enterGameFullscreen('sideline')">Fullscreen Sideline</button>
         <button class="btn btn-sm btn-primary" onclick="copyCoachCard()">Copy coach card</button>
       </div>
     </div>
+  </div>
+
+
+  <div id="gameFullscreenDock" aria-label="Fullscreen game controls">
+    <button class="btn btn-sm" id="fullscreenModeSwitchBtn" onclick="toggleMode()">Switch to Box</button>
+    <button class="btn btn-sm btn-primary" onclick="exitGameFullscreen()">Exit Fullscreen</button>
   </div>
 
   <!-- Mode tabs (Box / Sideline) -->
@@ -1801,22 +1831,63 @@ function sidelineAccountability(kind){
   toast('Logged accountability: '+kind);
 }
 
-function toggleMode(){
-  currentGameMode = currentGameMode === 'box' ? 'sideline' : 'box';
-  let isBox = currentGameMode === 'box';
-  if($('boxPanel'))$('boxPanel').style.display = isBox ? 'block' : 'none';
-  if($('sidelinePanel'))$('sidelinePanel').style.display = isBox ? 'none' : 'block';
-  if($('modeToggleBtn'))$('modeToggleBtn').textContent = isBox ? 'Switch to Sideline' : 'Switch to Box';
+function setGameMode(mode){
+  currentGameMode = mode === 'sideline' ? 'sideline' : 'box';
+  const isBox = currentGameMode === 'box';
+  if($('boxPanel')) $('boxPanel').style.display = isBox ? 'block' : 'none';
+  if($('sidelinePanel')) $('sidelinePanel').style.display = isBox ? 'none' : 'block';
+  if($('modeToggleBtn')) $('modeToggleBtn').textContent = isBox ? 'Switch to Sideline' : 'Switch to Box';
+  if($('fullscreenModeSwitchBtn')) $('fullscreenModeSwitchBtn').textContent = isBox ? 'Switch to Sideline' : 'Switch to Box';
+  document.body.classList.toggle('sideline-mode', !isBox && document.body.classList.contains('game-fullscreen-mode'));
   runPredict();
 }
 
-function toggleSideline(){
-  document.body.classList.toggle('sideline-mode');
-  // If enabling, switch to sideline panel
-  if(document.body.classList.contains('sideline-mode')){
-    showPage('game', document.querySelectorAll('.nav-link')[2]);
-    if(currentGameMode==='box') toggleMode();
+function toggleMode(){
+  setGameMode(currentGameMode === 'box' ? 'sideline' : 'box');
+}
+
+async function enterGameFullscreen(mode){
+  showPage('game', document.querySelectorAll('.nav-link')[2]);
+  setGameMode(mode);
+  document.body.classList.add('game-fullscreen-mode');
+  document.body.classList.toggle('sideline-mode', mode === 'sideline');
+  try{
+    const root = document.documentElement;
+    if(!document.fullscreenElement && root.requestFullscreen){
+      await root.requestFullscreen({ navigationUI: 'hide' });
+    } else if(!document.fullscreenElement && root.webkitRequestFullscreen){
+      root.webkitRequestFullscreen();
+    }
+  }catch(err){
+    console.warn('Browser fullscreen was blocked:', err);
+    toast('Focus mode opened. Your browser blocked true fullscreen.');
   }
+}
+
+async function exitGameFullscreen(){
+  try{
+    if(document.fullscreenElement && document.exitFullscreen){
+      await document.exitFullscreen();
+    } else if(document.webkitFullscreenElement && document.webkitExitFullscreen){
+      document.webkitExitFullscreen();
+    }
+  }catch(err){ console.warn('Could not exit fullscreen:', err); }
+  document.body.classList.remove('game-fullscreen-mode','sideline-mode');
+}
+
+function handleFullscreenChange(){
+  const active = !!(document.fullscreenElement || document.webkitFullscreenElement);
+  if(!active){
+    document.body.classList.remove('game-fullscreen-mode','sideline-mode');
+  }
+}
+document.addEventListener('fullscreenchange', handleFullscreenChange);
+document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+
+/* Backward-compatible entry point used by older buttons/bookmarks. */
+function toggleSideline(){
+  if(document.body.classList.contains('game-fullscreen-mode')) exitGameFullscreen();
+  else enterGameFullscreen('sideline');
 }
 
 function syncSideline(){
