@@ -1165,6 +1165,7 @@ input[type=file] { background: transparent; border: none; padding: 0; }
     <div class="g4" id="postgame-kpis" style="margin-bottom:14px"></div>
     <div class="g2">
       <div class="card"><div class="card-title">Prediction Accuracy</div><div id="r-accuracy"></div></div>
+      <div class="card"><div class="card-title">Prediction Reliability</div><div class="small" style="margin-bottom:8px">Did the engine know when to trust its strongest calls?</div><div id="r-reliability"></div></div>
       <div class="card"><div class="card-title">Live Concept Usage</div><div id="r-usage"></div></div>
       <div class="card"><div class="card-title">Situational Tendencies</div><div id="r-sits"></div></div>
       <div class="card"><div class="card-title">Coordinator DNA Learned</div><div id="r-dna"></div></div>
@@ -1928,6 +1929,10 @@ function logPlay(){
   let play={
     id:ST.live.length+1, ...cur, star,
     predicted:top3[0]||'', top3,
+    predictionPct:preds[0]?.pct||0,
+    predictionLead:(preds[0]?.pct||0)-(preds[1]?.pct||0),
+    predictionConfidence:confidence(preds),
+    predictionSnapshot:preds.slice(0,5).map(p=>({name:p.name,pct:p.pct,type:p.type})),
     concept, type:typeOf(concept),
     direction:val('g-dir'), gap:val('g-gap'), result:val('g-result'),
     explosive:['xp','td'].includes(val('g-result'))?'1':'0',
@@ -2571,6 +2576,100 @@ function printPregameReport(){
   const w=window.open('','_blank');if(!w){toast('Popup blocked. Allow popups to print.',false);return;}
   w.document.write(`<!doctype html><html><head><title>Pregame Report</title><style>:root{--bg:#05070b;--panel:#07101e;--panel2:#0d1420;--line:#243247;--text:#f3f6fb;--muted:#a9b5c7;--primary:${brand.primary};--secondary:${brand.secondary};--accent:${brand.accent};--gold:var(--secondary);--blue:var(--primary)}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;box-sizing:border-box}html,body{background:var(--bg)!important;color:var(--text)!important}body{font-family:Arial,sans-serif;margin:24px}h2{margin:0;color:#fff}h3{border-bottom:2px solid var(--gold);padding-bottom:4px;color:var(--gold)}.g2,.g4{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.g4{grid-template-columns:repeat(4,1fr)}.scout-cover{display:flex;justify-content:space-between;gap:16px;background:linear-gradient(135deg,color-mix(in srgb,var(--primary) 38%,#07101e),#101c2e 68%,color-mix(in srgb,var(--secondary) 18%,#101c2e))!important;border:1px solid var(--line);border-left:6px solid var(--gold);border-radius:14px;padding:18px;margin-bottom:16px}.scout-badge{background:var(--gold)!important;color:#111!important;border:2px solid var(--accent);border-radius:999px;padding:10px 14px;font-weight:900;align-self:flex-start}.kpi,.scout-box{background:var(--panel)!important;color:var(--text)!important;border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px;break-inside:avoid;page-break-inside:avoid}.kpi{background:var(--panel2)!important}.kpi-val{font-size:24px;font-weight:900;color:var(--gold)!important}.kpi-label{font-size:10px;text-transform:uppercase;color:var(--muted)!important}.trend-line{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding:6px 0;font-size:12px}.trend-line span,.muted,.scout-box p,.scout-box li{color:var(--muted)!important}.eyebrow{text-transform:uppercase;font-size:11px;font-weight:bold;color:var(--blue)!important;letter-spacing:.08em}@page{size:auto;margin:10mm}@media print{body{margin:0!important;background:var(--bg)!important}.scout-cover,.scout-box,.kpi{break-inside:avoid;page-break-inside:avoid}}</style></head><body>${pregameReportHtml()}<script>window.onload=()=>window.print();<\/script></body></html>`);w.document.close();
 }
+
+// ─── PREDICTION RELIABILITY ───────────────────────────────────
+function normalizedConfidenceLabel(value){
+  const v=String(value||'').toLowerCase();
+  if(v.includes('high')||v.includes('strong'))return'High';
+  if(v.includes('medium')||v.includes('moderate'))return'Medium';
+  return'Low';
+}
+
+function storedPredictionPct(play){
+  const raw=Number(play?.predictionPct);
+  if(Number.isFinite(raw)&&raw>0)return raw;
+  const snap=Array.isArray(play?.predictionSnapshot)?play.predictionSnapshot:[];
+  const first=Number(snap[0]?.pct);
+  return Number.isFinite(first)&&first>0?first:null;
+}
+
+function storedPredictionLead(play){
+  const raw=Number(play?.predictionLead);
+  if(Number.isFinite(raw)&&raw>=0)return raw;
+  const snap=Array.isArray(play?.predictionSnapshot)?play.predictionSnapshot:[];
+  const a=Number(snap[0]?.pct),b=Number(snap[1]?.pct);
+  return Number.isFinite(a)&&Number.isFinite(b)?Math.max(0,a-b):null;
+}
+
+function reliabilityLabelForPlay(play){
+  if(play?.predictionConfidence)return normalizedConfidenceLabel(play.predictionConfidence);
+  const pctValue=storedPredictionPct(play),lead=storedPredictionLead(play);
+  if(pctValue==null)return'Legacy';
+  if(pctValue>=.30&&(lead??0)>=.09)return'High';
+  if(pctValue>=.22&&(lead??0)>=.045)return'Medium';
+  return'Low';
+}
+
+function predictionReliabilityStats(plays){
+  const graded=(plays||[]).filter(p=>p&&p.predicted&&typeof p.top1hit==='boolean');
+  const current=graded.filter(p=>storedPredictionPct(p)!=null||p.predictionConfidence);
+  const legacy=graded.length-current.length;
+  const order=['High','Medium','Low'];
+  const groups=order.map(label=>{
+    const rows=current.filter(p=>reliabilityLabelForPlay(p)===label);
+    const hits=rows.filter(p=>p.top1hit).length;
+    const avgPct=rows.length?rows.reduce((sum,p)=>sum+(storedPredictionPct(p)||0),0)/rows.length:null;
+    const avgLead=rows.length?rows.reduce((sum,p)=>sum+(storedPredictionLead(p)||0),0)/rows.length:null;
+    return{label,rows,n:rows.length,hits,accuracy:rows.length?hits/rows.length:null,avgPct,avgLead};
+  });
+  const probabilityBuckets=[
+    {label:'35%+',min:.35,max:2},
+    {label:'25–34%',min:.25,max:.35},
+    {label:'15–24%',min:.15,max:.25},
+    {label:'Under 15%',min:0,max:.15}
+  ].map(bucket=>{
+    const rows=current.filter(p=>{const x=storedPredictionPct(p);return x!=null&&x>=bucket.min&&x<bucket.max;});
+    const hits=rows.filter(p=>p.top1hit).length;
+    const expected=rows.length?rows.reduce((sum,p)=>sum+(storedPredictionPct(p)||0),0)/rows.length:null;
+    const actual=rows.length?hits/rows.length:null;
+    return{...bucket,rows,n:rows.length,hits,expected,actual,gap:rows.length?actual-expected:null};
+  });
+  const highMisses=current.filter(p=>reliabilityLabelForPlay(p)==='High'&&!p.top1hit);
+  return{graded,current,legacy,groups,probabilityBuckets,highMisses};
+}
+
+function reliabilityVerdict(stats){
+  const high=stats.groups.find(g=>g.label==='High');
+  const medium=stats.groups.find(g=>g.label==='Medium');
+  const low=stats.groups.find(g=>g.label==='Low');
+  if(!stats.current.length)return'New reliability tracking begins with newly logged plays.';
+  if((high?.n||0)<5)return'Building sample: five or more high-confidence calls are needed for a trustworthy verdict.';
+  if(high.accuracy>=.80&&(!medium?.n||high.accuracy>=medium.accuracy+.08))return'High-confidence calls are earning trust and clearly outperforming less-certain calls.';
+  if(high.accuracy<.60)return'Overconfidence alert: the strongest calls are not converting often enough.';
+  if((low?.n||0)>=5&&low.accuracy>=high.accuracy-.05)return'Confidence separation is weak: low-confidence calls are performing nearly as well as high-confidence calls.';
+  return'Confidence is directionally useful, but the separation between tiers is still developing.';
+}
+
+function predictionReliabilityHtml(plays){
+  const stats=predictionReliabilityStats(plays);
+  if(!stats.graded.length)return'<div class="empty-state">No graded live predictions yet.</div>';
+  if(!stats.current.length)return`<div class="empty-state">Existing plays were logged before reliability tracking was added. New plays will automatically save confidence and probability.</div>`;
+  const groupRows=stats.groups.map(g=>{
+    const accuracy=g.n?pct(g.hits,g.n)+'%':'—';
+    const avg=g.avgPct!=null?Math.round(g.avgPct*100)+'%':'—';
+    return`<div class="trend-line"><b>${g.label}</b><span>${g.n} calls · ${accuracy} correct · avg prediction ${avg}</span></div>`;
+  }).join('');
+  const calibration=stats.probabilityBuckets.filter(b=>b.n).map(b=>{
+    const gap=Math.round((b.gap||0)*100);
+    const note=Math.abs(gap)<=7?'well aligned':gap>7?`${gap} pts better than forecast`:`${Math.abs(gap)} pts below forecast`;
+    return`<div class="trend-line"><b>${b.label}</b><span>${b.n} calls · expected ${Math.round(b.expected*100)}% · actual ${Math.round(b.actual*100)}% · ${note}</span></div>`;
+  }).join('');
+  const missText=stats.highMisses.length
+    ? `<div class="note note-warn" style="margin-top:10px"><b>High-confidence misses:</b> ${stats.highMisses.length}. Review: ${stats.highMisses.slice(0,5).map(p=>`#${p.id||'?'} ${esc(p.predicted)} → ${esc(p.concept)}`).join(' · ')}</div>`
+    : '<div class="note" style="margin-top:10px"><b>High-confidence misses:</b> none in the tracked sample.</div>';
+  return`<div class="note" style="margin-bottom:10px"><b>Reliability read:</b> ${esc(reliabilityVerdict(stats))}</div>${groupRows}<div class="small" style="margin:12px 0 5px;font-weight:800;text-transform:uppercase">Probability calibration</div>${calibration||'<div class="small">More plays are needed to populate probability bands.</div>'}${missText}${stats.legacy?`<div class="small" style="margin-top:8px">${stats.legacy} older play${stats.legacy===1?'':'s'} excluded because confidence was not saved at the time.</div>`:''}`;
+}
+
 function renderReports(){
   const film=ST.film, live=ST.live;
   if($('r-pregame'))$('r-pregame').innerHTML=pregameReportHtml();
@@ -2590,6 +2689,7 @@ function renderReports(){
   const sits={};live.forEach(p=>{let k=`${p.down}/${DIST_LABEL[p.dist]||p.dist}`;(sits[k]??=[]).push(p);});
   if($('r-sits'))$('r-sits').innerHTML=Object.entries(sits).map(([k,a])=>`<div class="trend-line"><b>${k}</b><span>${topEntry(countBy(a,'concept'))?.[0]||'—'} (${a.length})</span></div>`).join('')||'<div class="empty-state">No live situations yet.</div>';
   if($('r-accuracy'))$('r-accuracy').innerHTML=live.length?`<div class="trend-line"><b>Top-1</b><span>${live.filter(p=>p.top1hit).length}/${live.length}</span></div><div class="trend-line"><b>Top-3</b><span>${live.filter(p=>p.top3hit).length}/${live.length}</span></div><div class="trend-line"><b>Run / pass family</b><span>${live.filter(p=>typeOf(p.predicted)===(p.type||typeOf(p.concept))).length}/${live.length}</span></div>`:'<div class="empty-state">No graded plays yet.</div>';
+  if($('r-reliability'))$('r-reliability').innerHTML=predictionReliabilityHtml(live);
   if($('r-dna'))$('r-dna').innerHTML=coordinatorDna([...film,...live]).map(x=>`<div class="trend-line"><span>${esc(x)}</span></div>`).join('');
   setReportViewDisplayOnly();
 }
@@ -3064,7 +3164,7 @@ function importBackup(e){ let f=e.target.files?.[0]; if(!f)return; let r=new Fil
 
 function resetAll(){ if(!confirm('Reset EVERYTHING? This cannot be undone.'))return; localStorage.removeItem('dpp_v4'); location.reload(); }
 
-function rowsCSV(arr){ let head=['Source','Q','Down','Dist','Zone','Pers','Form','Str','Hash','Tempo','Phase','Star','Pred1','Actual','Result','Explosive','Top1Hit','Top3Hit']; let lines=[head]; arr.forEach(p=>lines.push([p.source,p.quarter,p.down,DIST_LABEL[p.dist]||p.dist,ZONE_LABEL[p.zone]||p.zone,p.personnel,p.formation,p.strength,p.hash,p.tempo,p.phase,p.star,p.predicted||'',p.concept,RES_LABEL[p.result]||p.result,p.explosive,p.top1hit?1:'',p.top3hit?1:''].map(x=>`"${String(x??'').replace(/"/g,'""')}"`)));return lines.map(r=>r.join(',')).join('\n'); }
+function rowsCSV(arr){ let head=['Source','Q','Down','Dist','Zone','Pers','Form','Str','Hash','Tempo','Phase','Star','Pred1','PredictionPct','PredictionLead','PredictionConfidence','Actual','Result','Explosive','Top1Hit','Top3Hit']; let lines=[head]; arr.forEach(p=>lines.push([p.source,p.quarter,p.down,DIST_LABEL[p.dist]||p.dist,ZONE_LABEL[p.zone]||p.zone,p.personnel,p.formation,p.strength,p.hash,p.tempo,p.phase,p.star,p.predicted||'',storedPredictionPct(p)!=null?(storedPredictionPct(p)*100).toFixed(1):'',storedPredictionLead(p)!=null?(storedPredictionLead(p)*100).toFixed(1):'',p.predictionConfidence||'',p.concept,RES_LABEL[p.result]||p.result,p.explosive,p.top1hit?1:'',p.top3hit?1:''].map(x=>`"${String(x??'').replace(/"/g,'""')}"`)));return lines.map(r=>r.join(',')).join('\n'); }
 function download(name,content,type){ let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=name;a.click(); }
 function downloadCsv(which){ let arr=which==='live'?ST.live:[...ST.film,...ST.live]; download(`dpp_${ST.opp}_${which}.csv`,rowsCSV(arr),'text/csv'); }
 
