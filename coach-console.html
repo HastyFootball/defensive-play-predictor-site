@@ -481,6 +481,19 @@ input[type=file] { background: transparent; border: none; padding: 0; }
 .map-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
 @media(max-width:700px){ .map-grid{ grid-template-columns:1fr 1fr; } }
 @media(max-width:420px){ .map-grid{ grid-template-columns:1fr; } }
+
+/* ── FILM PLAY EDITOR ── */
+.film-actions{display:flex;gap:6px;flex-wrap:wrap}
+.film-edit-overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;padding:18px;z-index:10000}
+.film-edit-overlay.open{display:flex}
+.film-edit-dialog{width:min(980px,100%);max-height:94vh;overflow:auto;background:#07101e;border:1px solid var(--line);border-radius:18px;box-shadow:0 24px 80px rgba(0,0,0,.55);padding:18px}
+.film-edit-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px}
+.film-edit-head h2{font:900 20px var(--mono);margin:0;color:var(--text)}
+.film-edit-head p{font:11px/1.5 var(--mono);color:var(--muted);margin-top:5px}
+.film-edit-close{border:1px solid var(--line);background:#0d1420;color:var(--text);border-radius:10px;width:38px;height:38px;font-size:22px;cursor:pointer}
+.film-edit-footer{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+@media(max-width:700px){.film-edit-dialog{padding:14px}.film-edit-footer>div{width:100%;display:flex;gap:8px}.film-edit-footer .btn{flex:1}}
+
 </style>
 </head>
 <body>
@@ -698,11 +711,42 @@ input[type=file] { background: transparent; border: none; padding: 0; }
     <div class="card-title">Film Library (<span id="filmCount">0</span> plays)</div>
     <div class="tablewrap">
       <table>
-        <thead><tr><th>#</th><th>Dn</th><th>Dist</th><th>Zone</th><th>Pers</th><th>Form</th><th>Concept</th><th>Star</th><th>Result</th><th>Src</th></tr></thead>
+        <thead><tr><th>#</th><th>Dn</th><th>Dist</th><th>Zone</th><th>Pers</th><th>Form</th><th>Concept</th><th>Star</th><th>Result</th><th>Src</th><th>Actions</th></tr></thead>
         <tbody id="filmBody"></tbody>
       </table>
     </div>
   </div>
+
+  
+<!-- Film play editor -->
+<div class="film-edit-overlay" id="filmEditOverlay" role="dialog" aria-modal="true" aria-labelledby="filmEditTitle" onclick="filmEditorBackdrop(event)">
+  <div class="film-edit-dialog">
+    <div class="film-edit-head">
+      <div><h2 id="filmEditTitle">Edit Film Play</h2><p id="filmEditSubtitle">Update this play without re-importing the film.</p></div>
+      <button class="film-edit-close" type="button" aria-label="Close editor" onclick="closeFilmEditor()">×</button>
+    </div>
+    <div class="g5">
+      <div><label>Down</label><select id="e-down"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
+      <div><label>Distance</label><select id="e-dist"><option value="short">1-3</option><option value="normal">4-6</option><option value="long">7-10</option><option value="xlong">11+</option></select></div>
+      <div><label>Zone</label><select id="e-zone"><option value="own">Own</option><option value="mid">Mid</option><option value="hrz">HRZ</option><option value="rz">RZ</option><option value="gl">GL</option></select></div>
+      <div><label>Personnel</label><select id="e-pers"><option>10</option><option>11</option><option>12</option><option>20</option><option>21</option><option>heavy</option><option>empty</option></select></div>
+      <div><label>Formation</label><select id="e-form"></select></div>
+      <div><label>Strength</label><select id="e-str"><option value="R">Right</option><option value="L">Left</option></select></div>
+      <div><label>Hash</label><select id="e-hash"><option value="mid">Middle</option><option value="L">Left</option><option value="R">Right</option></select></div>
+      <div><label>Tempo</label><select id="e-tempo"><option value="normal">Normal</option><option value="hurry">Hurry-up</option><option value="slow">Check-w-me</option></select></div>
+      <div><label>Concept</label><select id="e-concept"></select></div>
+      <div><label>Star</label><select id="e-star"><option value="unknown">Unknown</option><option value="on">On</option><option value="off">Off</option></select></div>
+      <div><label>Direction</label><select id="e-dir"><option value="">—</option><option value="L">Left</option><option value="M">Middle</option><option value="R">Right</option></select></div>
+      <div><label>Gap</label><select id="e-gap"><option value="">—</option><option>A</option><option>B</option><option>C</option><option>D</option><option value="edge">Edge</option></select></div>
+      <div><label>Result</label><select id="e-result"><option value="">—</option><option value="neg">Neg/TFL</option><option value="s">0-3</option><option value="m">4-6</option><option value="l">7-10</option><option value="xp">11+</option><option value="td">TD</option></select></div>
+      <div><label>Source / Game</label><input id="e-source" type="text" placeholder="Film, Week 2, HUDL, etc."></div>
+    </div>
+    <div class="film-edit-footer">
+      <div><button class="btn btn-danger" type="button" onclick="deleteFilmPlayFromEditor()">Delete this play</button></div>
+      <div><button class="btn" type="button" onclick="closeFilmEditor()">Cancel</button><button class="btn btn-good" type="button" onclick="saveFilmPlayEdit()">Save changes</button></div>
+    </div>
+  </div>
+</div>
 
   <!-- Tendency analytics -->
   <div class="card" id="prep-analytics">
@@ -1075,13 +1119,15 @@ input[type=file] { background: transparent; border: none; padding: 0; }
   <!-- Formations -->
   <div class="card">
     <div class="card-title">Formation Manager</div>
-    <div class="g3">
+    <p class="small" style="margin-bottom:10px">Activate only the formations this opponent uses. Deactivated formations stay in saved film and reports, but are hidden from live and manual-entry menus.</p>
+    <div class="g4">
       <div><label>Formation name</label><input type="text" id="s-new-form" placeholder="e.g. nub trips"></div>
       <div><label>Family</label>
         <select id="s-new-form-fam">
           <option value="spread">Spread</option><option value="tight">Tight</option><option value="heavy">Heavy</option>
           <option value="empty">Empty</option><option value="pistol">Pistol</option><option value="wingt">Wing-T</option><option value="other">Other</option>
         </select></div>
+      <div><label>Activate now?</label><select id="s-new-form-active"><option value="yes">Yes</option><option value="no">No</option></select></div>
       <div style="display:flex;align-items:flex-end"><button class="btn btn-primary" onclick="addFormation()">Add formation</button></div>
     </div>
     <div id="formationPanel" style="margin-top:12px"></div>
@@ -1297,8 +1343,15 @@ function allFormations(){
 function allFormationNames(){ return allFormations().map(f=>nForm(f.name)); }
 function activeFormations(){
   const all = allFormationNames();
-  if(!Array.isArray(ST.activeFormations) || !ST.activeFormations.length){ ST.activeFormations = [...all]; }
-  ST.activeFormations = ST.activeFormations.map(nForm).filter(f=>all.includes(f));
+  if(!Array.isArray(ST.activeFormations)) ST.activeFormations=[];
+  // Backward compatibility: existing saved teams had no formation activation flag,
+  // so begin with every available formation active exactly once. After that, an
+  // empty array correctly means the user intentionally deactivated every formation.
+  if(!ST.formationActivationInitialized){
+    ST.activeFormations = ST.activeFormations.length ? ST.activeFormations : [...all];
+    ST.formationActivationInitialized = true;
+  }
+  ST.activeFormations = [...new Set(ST.activeFormations.map(nForm).filter(f=>all.includes(f)))];
   return ST.activeFormations;
 }
 function defaultFormFam(f){ f=nForm(f);
@@ -1974,19 +2027,131 @@ function renderLiveLog(){
 }
 
 // ─── FILM LIB ────────────────────────────────────────────────
+let editingFilmIndex = null;
+
+function refreshFilmViews(){
+  silentSave();
+  renderFilmLib();
+  if(typeof renderAnalytics==='function') renderAnalytics();
+  if(typeof renderScoutReport==='function') renderScoutReport();
+  if(typeof renderReports==='function') renderReports();
+  runPredict();
+  updateNavHeader();
+}
+
 function renderFilmLib(){
   let b=$('filmBody'); if(!b)return;
   if($('filmCount'))$('filmCount').textContent=ST.film.length;
-  if(!ST.film.length){ b.innerHTML='<tr><td colspan="10" class="empty-state">No film loaded. Use the import or manual entry above.</td></tr>'; return; }
-  b.innerHTML=[...ST.film].reverse().slice(0,200).map((p,i)=>`
-    <tr>
-      <td>${ST.film.length-i}</td><td>${p.down}</td>
+  if(!ST.film.length){ b.innerHTML='<tr><td colspan="11" class="empty-state">No film loaded. Use the import or manual entry above.</td></tr>'; return; }
+  b.innerHTML=[...ST.film].reverse().slice(0,200).map((p,i)=>{
+    const originalIndex=ST.film.length-1-i;
+    return `<tr>
+      <td>${originalIndex+1}</td><td>${p.down}</td>
       <td>${DIST_LABEL[p.dist]||p.dist}</td><td>${ZONE_LABEL[p.zone]||p.zone}</td>
       <td>${p.personnel}</td><td>${p.formation}</td>
       <td>${esc(p.concept)}</td><td>${p.star||'?'}</td>
-      <td>${RES_LABEL[p.result]||p.result||'—'}</td><td>${p.source||'film'}</td>
-    </tr>`).join('');
+      <td>${RES_LABEL[p.result]||p.result||'—'}</td><td>${esc(p.source||'film')}</td>
+      <td><div class="film-actions"><button class="btn btn-sm" type="button" onclick="openFilmEditor(${originalIndex})">Edit</button></div></td>
+    </tr>`;
+  }).join('');
 }
+
+function setSelectValue(id,value,fallback=''){
+  const el=$(id); if(!el)return;
+  const wanted=String(value??'');
+  if([...el.options].some(o=>o.value===wanted)) el.value=wanted;
+  else if(fallback!==undefined) el.value=String(fallback);
+}
+
+function populateFilmEditorSelects(play){
+  const concepts=activeConcepts();
+  const currentConcept=String(play?.concept||'');
+  const conceptList=currentConcept&&!concepts.includes(currentConcept)?[currentConcept,...concepts]:concepts;
+  if($('e-concept')) $('e-concept').innerHTML='<option value="">— select —</option>'+conceptList.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+
+  const formations=allFormations().map(f=>f.name);
+  const currentForm=String(play?.formation||'');
+  const formList=currentForm&&!formations.includes(currentForm)?[currentForm,...formations]:formations;
+  if($('e-form')) $('e-form').innerHTML=formList.map(f=>`<option value="${esc(f)}">${esc(f)}</option>`).join('');
+}
+
+function openFilmEditor(index){
+  const play=ST.film[index]; if(!play)return;
+  editingFilmIndex=index;
+  populateFilmEditorSelects(play);
+  setSelectValue('e-down',play.down,'1');
+  setSelectValue('e-dist',play.dist,'normal');
+  setSelectValue('e-zone',play.zone,'own');
+  setSelectValue('e-pers',play.personnel,'11');
+  setSelectValue('e-form',play.formation,'2x2');
+  setSelectValue('e-str',play.strength,'R');
+  setSelectValue('e-hash',play.hash,'mid');
+  setSelectValue('e-tempo',play.tempo,'normal');
+  setSelectValue('e-concept',play.concept,'');
+  setSelectValue('e-star',play.star,'unknown');
+  setSelectValue('e-dir',play.direction,'');
+  setSelectValue('e-gap',play.gap,'');
+  setSelectValue('e-result',play.result,'');
+  if($('e-source')) $('e-source').value=play.source||'film';
+  if($('filmEditSubtitle')) $('filmEditSubtitle').textContent=`Editing film play ${index+1} of ${ST.film.length}.`;
+  $('filmEditOverlay')?.classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function closeFilmEditor(){
+  $('filmEditOverlay')?.classList.remove('open');
+  document.body.style.overflow='';
+  editingFilmIndex=null;
+}
+
+function filmEditorBackdrop(event){
+  if(event.target?.id==='filmEditOverlay') closeFilmEditor();
+}
+
+function saveFilmPlayEdit(){
+  if(editingFilmIndex===null||!ST.film[editingFilmIndex])return;
+  const concept=val('e-concept');
+  if(!concept)return alert('Pick a concept before saving.');
+  const old=ST.film[editingFilmIndex];
+  ST.film[editingFilmIndex]={
+    ...old,
+    down:val('e-down'),dist:val('e-dist'),zone:val('e-zone'),
+    personnel:val('e-pers'),formation:val('e-form')||'2x2',
+    strength:val('e-str'),hash:val('e-hash'),tempo:val('e-tempo'),
+    star:val('e-star'),concept,type:typeOf(concept),
+    direction:val('e-dir'),gap:val('e-gap'),result:val('e-result'),
+    explosive:['xp','td'].includes(val('e-result'))?'1':'0',
+    source:(val('e-source')||old.source||'film').trim()
+  };
+  closeFilmEditor();
+  refreshFilmViews();
+  toast('Film play updated');
+}
+
+function deleteFilmPlay(index){
+  const play=ST.film[index]; if(!play)return;
+  const label=play.concept?` (${play.concept})`:'';
+  if(!confirm(`Delete film play ${index+1}${label}? This cannot be undone.`))return;
+  ST.film.splice(index,1);
+  refreshFilmViews();
+  toast('Film play deleted');
+}
+
+function deleteFilmPlayFromEditor(){
+  if(editingFilmIndex===null)return;
+  const index=editingFilmIndex;
+  const play=ST.film[index]; if(!play)return;
+  const label=play.concept?` (${play.concept})`:'';
+  if(!confirm(`Delete film play ${index+1}${label}? This cannot be undone.`))return;
+  ST.film.splice(index,1);
+  closeFilmEditor();
+  refreshFilmViews();
+  toast('Film play deleted');
+}
+
+document.addEventListener('keydown',event=>{
+  if(event.key==='Escape'&&$('filmEditOverlay')?.classList.contains('open')) closeFilmEditor();
+});
 
 function addFilmPlay(){
   let c=val('f-concept'); if(!c)return alert('Pick a concept.');
@@ -2880,10 +3045,12 @@ function renderFormationPanel(){
   let active = new Set(activeFormations());
   el.innerHTML=allFormations().map(f=>{
     const name=nForm(f.name), on=active.has(name);
-    return `<span class="formation-chip" data-formation-row="${esc(name)}">
-      <button type="button" class="formation-btn ${on?'on':''}" data-setup-formation="${esc(name)}" aria-pressed="${on?'true':'false'}">${on?'✓ ':''}${esc(name)} <small style="opacity:.7">${esc(f.family)}</small></button>
+    return `<div class="setup-chip-row" data-formation-row="${esc(name)}" style="display:flex;align-items:center;gap:8px;margin:7px 0;flex-wrap:wrap">
+      <div class="formation-btn ${on?'on':''}" style="cursor:default;min-width:190px">${on?'✓ ':''}${esc(name)} <small style="opacity:.7">${esc(f.family)}</small></div>
+      <button type="button" class="btn btn-xs ${on?'':'btn-primary'}" data-setup-formation="${esc(name)}" aria-pressed="${on?'true':'false'}">${on?'Deactivate':'Activate'}</button>
+      <span class="small" style="min-width:58px">${on?'Active':'Inactive'}</span>
       <button type="button" class="btn btn-xs btn-danger setup-delete-btn" data-delete-formation="${esc(name)}" title="Delete this formation from setup and prediction menus">Delete</button>
-    </span>`;
+    </div>`;
   }).join('') || '<div class="small">No formations yet. Add one above.</div>';
   bindSetupManagerButtons();
   renderDeletedManagers();
@@ -2933,22 +3100,28 @@ function addConcept(){
 
 function addFormation(){
   let name=nForm(val('s-new-form')), family=val('s-new-form-fam')||'other';
+  const activateNow=val('s-new-form-active')!=='no';
   if(!name)return alert('Enter a formation name.');
   ST.deletedFormations=(ST.deletedFormations||[]).filter(f=>nForm(f)!==name);
   let existing=(ST.customFormations||[]).find(f=>nForm(f.name)===name);
   if(existing)existing.family=family;
   else if(!DEFAULT_FORMATIONS.map(nForm).includes(name))ST.customFormations.push({name,family});
   if(!Array.isArray(ST.activeFormations)) ST.activeFormations=[];
-  if(!ST.activeFormations.includes(name)) ST.activeFormations.push(name);
+  ST.formationActivationInitialized=true;
+  ST.activeFormations=ST.activeFormations.filter(f=>nForm(f)!==name);
+  if(activateNow) ST.activeFormations.push(name);
   if($('s-new-form'))$('s-new-form').value='';
-  silentSave();renderFormationPanel();populateAllSelects();runPredict();toast('Formation added');
+  silentSave();renderFormationPanel();populateAllSelects();runPredict();toast(activateNow?'Formation added and activated':'Formation added as inactive');
 }
 
 function toggleFormation(name){
   name=nForm(name); if(!name)return;
   const all=allFormationNames();
   if(!all.includes(name))return;
-  if(!Array.isArray(ST.activeFormations) || !ST.activeFormations.length) ST.activeFormations=[...all];
+  if(!Array.isArray(ST.activeFormations)) ST.activeFormations=[];
+  // Initialize legacy state before applying the user's first formation toggle.
+  activeFormations();
+  ST.formationActivationInitialized=true;
   let i=ST.activeFormations.indexOf(name);
   if(i>=0) ST.activeFormations.splice(i,1); else ST.activeFormations.push(name);
   silentSave(); renderFormationPanel(); populateAllSelects(); runPredict();
@@ -2957,6 +3130,7 @@ function toggleFormation(name){
 
 function deleteFormation(name){
   name=nForm(name); if(!name)return;
+  ST.formationActivationInitialized=true;
   if(!confirm(`Delete "${name}"?`))return;
   ST.deletedFormations=[...(ST.deletedFormations||[]).filter(f=>nForm(f)!==name),name];
   ST.activeFormations=(ST.activeFormations||[]).filter(f=>nForm(f)!==name);
@@ -2971,6 +3145,7 @@ function restoreConcept(name){
 }
 function restoreFormation(name){
   name=nForm(name);
+  ST.formationActivationInitialized=true;
   ST.deletedFormations=(ST.deletedFormations||[]).filter(f=>nForm(f)!==name);
   if(!Array.isArray(ST.activeFormations)) ST.activeFormations=[];
   if(!ST.activeFormations.includes(name)) ST.activeFormations.push(name);
@@ -2994,10 +3169,10 @@ function loadPreset(base){
 function populateAllSelects(){
   let ac=activeConcepts();
   let cOpts='<option value="">— select —</option>'+ac.map(c=>`<option>${esc(c)}</option>`).join('');
-  ['g-actual','f-concept'].forEach(id=>{if($(id))$(id).innerHTML=cOpts;});
+  ['g-actual','f-concept','e-concept'].forEach(id=>{if($(id)){let cur=$(id).value;$(id).innerHTML=cOpts;if(cur&&[...$(id).options].some(o=>o.value===cur))$(id).value=cur;}});
   let activeF = new Set(activeFormations());
   let fOpts=allFormations().filter(f=>activeF.has(nForm(f.name))).map(f=>`<option value="${esc(f.name)}">${esc(f.name)}</option>`).join('');
-  ['g-form','f-form'].forEach(id=>{ let el=$(id); if(el){let cur=el.value;el.innerHTML=fOpts;if(cur&&[...el.options].some(o=>o.value===cur))el.value=cur;} });
+  ['g-form','f-form','e-form'].forEach(id=>{ let el=$(id); if(el){let cur=el.value;el.innerHTML=fOpts;if(cur&&[...el.options].some(o=>o.value===cur))el.value=cur;} });
 }
 
 // ─── IMPORT ENGINE ────────────────────────────────────────────
