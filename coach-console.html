@@ -1119,7 +1119,7 @@ input[type=file] { background: transparent; border: none; padding: 0; }
   <!-- Formations -->
   <div class="card">
     <div class="card-title">Formation Manager</div>
-    <p class="small" style="margin-bottom:10px">Activate only the formations this opponent uses. Deactivated formations stay in saved film and reports, but are hidden from live and manual-entry menus.</p>
+    <p class="small" style="margin-bottom:10px">Click a formation to toggle it. Highlighted formations are active; non-highlighted formations are inactive. Inactive formations stay in saved film and reports but are hidden from live and manual-entry menus.</p>
     <div class="g4">
       <div><label>Formation name</label><input type="text" id="s-new-form" placeholder="e.g. nub trips"></div>
       <div><label>Family</label>
@@ -3045,12 +3045,12 @@ function renderFormationPanel(){
   let active = new Set(activeFormations());
   el.innerHTML=allFormations().map(f=>{
     const name=nForm(f.name), on=active.has(name);
-    return `<div class="setup-chip-row" data-formation-row="${esc(name)}" style="display:flex;align-items:center;gap:8px;margin:7px 0;flex-wrap:wrap">
-      <div class="formation-btn ${on?'on':''}" style="cursor:default;min-width:190px">${on?'✓ ':''}${esc(name)} <small style="opacity:.7">${esc(f.family)}</small></div>
-      <button type="button" class="btn btn-xs ${on?'':'btn-primary'}" data-setup-formation="${esc(name)}" aria-pressed="${on?'true':'false'}">${on?'Deactivate':'Activate'}</button>
-      <span class="small" style="min-width:58px">${on?'Active':'Inactive'}</span>
+    return `<span class="setup-chip-row" data-formation-row="${esc(name)}">
+      <button type="button" class="formation-btn ${on?'on':''}" data-setup-formation="${esc(name)}" aria-pressed="${on?'true':'false'}" title="Click to ${on?'deactivate':'activate'} this formation">
+        ${on?'✓ ':''}${esc(name)} <small style="opacity:.7">${esc(f.family)}</small>
+      </button>
       <button type="button" class="btn btn-xs btn-danger setup-delete-btn" data-delete-formation="${esc(name)}" title="Delete this formation from setup and prediction menus">Delete</button>
-    </div>`;
+    </span>`;
   }).join('') || '<div class="small">No formations yet. Add one above.</div>';
   bindSetupManagerButtons();
   renderDeletedManagers();
