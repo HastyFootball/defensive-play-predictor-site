@@ -675,6 +675,8 @@ input[type=file] { background: transparent; border: none; padding: 0; }
       <button class="btn btn-sm" onclick="copyLiveToFilm()">Copy live situation</button>
     </div>
     <div class="g5">
+      <div><label>Quarter</label>
+        <select id="f-qtr"><option>1</option><option>2</option><option>3</option><option>4</option><option>OT</option></select></div>
       <div><label>Down</label>
         <select id="f-down"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
       <div><label>Distance</label>
@@ -688,8 +690,12 @@ input[type=file] { background: transparent; border: none; padding: 0; }
         <select id="f-str"><option value="R">Right</option><option value="L">Left</option></select></div>
       <div><label>Hash</label>
         <select id="f-hash"><option value="mid">Middle</option><option value="L">Left</option><option value="R">Right</option></select></div>
+      <div><label>Score</label>
+        <select id="f-score"><option value="lead2">Ahead 10+</option><option value="lead">Ahead 4-9</option><option value="close" selected>Within 3</option><option value="trail">Behind 4-9</option><option value="trail2">Behind 10+</option></select></div>
       <div><label>Tempo</label>
         <select id="f-tempo"><option value="normal">Normal</option><option value="hurry">Hurry-up</option><option value="slow">Check-w-me</option></select></div>
+      <div><label>Drive Phase</label>
+        <select id="f-phase"><option value="normal">Normal</option><option value="first">First play of drive</option><option value="afterExplosive">After explosive</option><option value="afterStuff">After stuffed</option><option value="redzone">Red-zone sequence</option></select></div>
       <div><label>Concept</label><select id="f-concept"></select></div>
       <div><label>Star</label>
         <select id="f-star"><option value="unknown">Unknown</option><option value="on">On</option><option value="off">Off</option></select></div>
@@ -726,6 +732,7 @@ input[type=file] { background: transparent; border: none; padding: 0; }
       <button class="film-edit-close" type="button" aria-label="Close editor" onclick="closeFilmEditor()">×</button>
     </div>
     <div class="g5">
+      <div><label>Quarter</label><select id="e-qtr"><option>1</option><option>2</option><option>3</option><option>4</option><option>OT</option></select></div>
       <div><label>Down</label><select id="e-down"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
       <div><label>Distance</label><select id="e-dist"><option value="short">1-3</option><option value="normal">4-6</option><option value="long">7-10</option><option value="xlong">11+</option></select></div>
       <div><label>Zone</label><select id="e-zone"><option value="own">Own</option><option value="mid">Mid</option><option value="hrz">HRZ</option><option value="rz">RZ</option><option value="gl">GL</option></select></div>
@@ -733,7 +740,9 @@ input[type=file] { background: transparent; border: none; padding: 0; }
       <div><label>Formation</label><select id="e-form"></select></div>
       <div><label>Strength</label><select id="e-str"><option value="R">Right</option><option value="L">Left</option></select></div>
       <div><label>Hash</label><select id="e-hash"><option value="mid">Middle</option><option value="L">Left</option><option value="R">Right</option></select></div>
+      <div><label>Score</label><select id="e-score"><option value="lead2">Ahead 10+</option><option value="lead">Ahead 4-9</option><option value="close">Within 3</option><option value="trail">Behind 4-9</option><option value="trail2">Behind 10+</option></select></div>
       <div><label>Tempo</label><select id="e-tempo"><option value="normal">Normal</option><option value="hurry">Hurry-up</option><option value="slow">Check-w-me</option></select></div>
+      <div><label>Drive Phase</label><select id="e-phase"><option value="normal">Normal</option><option value="first">First play of drive</option><option value="afterExplosive">After explosive</option><option value="afterStuff">After stuffed</option><option value="redzone">Red-zone sequence</option></select></div>
       <div><label>Concept</label><select id="e-concept"></select></div>
       <div><label>Star</label><select id="e-star"><option value="unknown">Unknown</option><option value="on">On</option><option value="off">Off</option></select></div>
       <div><label>Direction</label><select id="e-dir"><option value="">—</option><option value="L">Left</option><option value="M">Middle</option><option value="R">Right</option></select></div>
@@ -2079,6 +2088,7 @@ function openFilmEditor(index){
   const play=ST.film[index]; if(!play)return;
   editingFilmIndex=index;
   populateFilmEditorSelects(play);
+  setSelectValue('e-qtr',play.quarter,'1');
   setSelectValue('e-down',play.down,'1');
   setSelectValue('e-dist',play.dist,'normal');
   setSelectValue('e-zone',play.zone,'own');
@@ -2086,7 +2096,9 @@ function openFilmEditor(index){
   setSelectValue('e-form',play.formation,'2x2');
   setSelectValue('e-str',play.strength,'R');
   setSelectValue('e-hash',play.hash,'mid');
+  setSelectValue('e-score',play.score,'close');
   setSelectValue('e-tempo',play.tempo,'normal');
+  setSelectValue('e-phase',play.phase,'normal');
   setSelectValue('e-concept',play.concept,'');
   setSelectValue('e-star',play.star,'unknown');
   setSelectValue('e-dir',play.direction,'');
@@ -2115,9 +2127,9 @@ function saveFilmPlayEdit(){
   const old=ST.film[editingFilmIndex];
   ST.film[editingFilmIndex]={
     ...old,
-    down:val('e-down'),dist:val('e-dist'),zone:val('e-zone'),
+    quarter:val('e-qtr'),down:val('e-down'),dist:val('e-dist'),zone:val('e-zone'),
     personnel:val('e-pers'),formation:val('e-form')||'2x2',
-    strength:val('e-str'),hash:val('e-hash'),tempo:val('e-tempo'),
+    strength:val('e-str'),hash:val('e-hash'),score:val('e-score'),tempo:val('e-tempo'),phase:val('e-phase'),
     star:val('e-star'),concept,type:typeOf(concept),
     direction:val('e-dir'),gap:val('e-gap'),result:val('e-result'),
     explosive:['xp','td'].includes(val('e-result'))?'1':'0',
@@ -2156,10 +2168,10 @@ document.addEventListener('keydown',event=>{
 function addFilmPlay(){
   let c=val('f-concept'); if(!c)return alert('Pick a concept.');
   ST.film.push({
-    down:val('f-down'), dist:val('f-dist'), zone:val('f-zone'),
+    quarter:val('f-qtr'), down:val('f-down'), dist:val('f-dist'), zone:val('f-zone'),
     personnel:val('f-pers'), formation:val('f-form')||'2x2',
-    strength:val('f-str'), hash:val('f-hash'), tempo:val('f-tempo'),
-    phase:'normal', star:val('f-star'), concept:c, type:typeOf(c),
+    strength:val('f-str'), hash:val('f-hash'), score:val('f-score'), tempo:val('f-tempo'),
+    phase:val('f-phase'), star:val('f-star'), concept:c, type:typeOf(c),
     direction:val('f-dir'), gap:val('f-gap'), result:val('f-result'),
     explosive:['xp','td'].includes(val('f-result'))?'1':'0', source:'manual'
   });
@@ -2168,12 +2180,15 @@ function addFilmPlay(){
 }
 
 function copyLiveToFilm(){
+  if($('f-qtr'))$('f-qtr').value=val('g-qtr');
   ['Down','Dist','Zone'].forEach(k=>{ let src=k.toLowerCase(); if($('f-'+src)&&$('g-'+src))$('f-'+src).value=$('g-'+src).value; });
   if($('f-pers'))$('f-pers').value=val('g-pers');
   if($('f-form'))$('f-form').value=val('g-form');
   if($('f-str'))$('f-str').value=val('g-str');
   if($('f-hash'))$('f-hash').value=val('g-hash');
+  if($('f-score'))$('f-score').value=val('g-score');
   if($('f-tempo'))$('f-tempo').value=val('g-tempo');
+  if($('f-phase'))$('f-phase').value=val('g-phase');
   if($('f-star'))$('f-star').value=val('g-star');
 }
 
