@@ -1375,7 +1375,10 @@ function formFam(f){ f=nForm(f);
 function activeConcepts(){ return ST.active.filter(c=>!(ST.deletedConcepts||[]).includes(c)); }
 
 // ─── SAVE / LOAD ────────────────────────────────────────────────
-function saveState(){ localStorage.setItem('dpp_v4', JSON.stringify(ST)); }
+function saveState(){
+  localStorage.setItem('dpp_v4', JSON.stringify(ST));
+  if(typeof window.queueSetupCloudSave === 'function') window.queueSetupCloudSave();
+}
 function silentSave(){ saveState(); }
 
 function loadState(){
@@ -3461,6 +3464,7 @@ init();
 <script src="assets/config.js"></script>
 <script src="assets/supabase-app.js"></script>
 <script src="assets/analyst-assist-sync.js"></script>
+<script src="assets/setup-cloud-sync.js"></script>
 <script src="assets/render-deleted-managers.js"></script>
 <script>requireAuth();</script>
 </body>
