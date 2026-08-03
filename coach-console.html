@@ -535,11 +535,12 @@ input[type=file] { background: transparent; border: none; padding: 0; }
     </div>
   </div>
 
-  <div class="g4" style="margin-bottom:14px">
+  <div class="g5" style="margin-bottom:14px">
     <div class="kpi"><span class="kpi-val" id="d-live">0</span><div class="kpi-label">Live plays</div></div>
     <div class="kpi"><span class="kpi-val" id="d-film">0</span><div class="kpi-label">Film plays</div></div>
     <div class="kpi"><span class="kpi-val" id="d-top1">—</span><div class="kpi-label">Top-1 accuracy</div></div>
     <div class="kpi"><span class="kpi-val" id="d-top3">—</span><div class="kpi-label">Top-3 accuracy</div></div>
+    <div class="kpi"><span class="kpi-val" id="d-family">—</span><div class="kpi-label">Play family accuracy</div></div>
   </div>
 
   <div class="g2">
@@ -1642,6 +1643,37 @@ function runPassSplit(preds){
   return x;
 }
 
+function conceptFamily(concept, explicitType){
+  const t=explicitType||typeOf(concept);
+  if(concept==='Screen'||t==='Screen')return'Screen';
+  if(t==='Run')return'Run';
+  if(t==='RPO')return'RPO';
+  return'Pass';
+}
+
+function familyPredictionFromSplit(split){
+  const values={Run:split.r||0,Pass:split.p||0,RPO:split.o||0,Screen:split.s||0};
+  const order=['Run','Pass','RPO','Screen'];
+  return order.reduce((best,key)=>values[key]>values[best]?key:best,order[0]);
+}
+
+function familyPredictionForPlay(play){
+  if(play?.predictedPlayFamily)return play.predictedPlayFamily;
+  if(play?.playFamilyPrediction){
+    const x=play.playFamilyPrediction;
+    return familyPredictionFromSplit({r:x.Run||0,p:x.Pass||0,o:x.RPO||0,s:x.Screen||0});
+  }
+  if(Array.isArray(play?.predictionSnapshot)&&play.predictionSnapshot.length){
+    return familyPredictionFromSplit(runPassSplit(play.predictionSnapshot));
+  }
+  return conceptFamily(play?.predicted);
+}
+
+function playFamilyHit(play){
+  if(typeof play?.playFamilyHit==='boolean')return play.playFamilyHit;
+  return familyPredictionForPlay(play)===conceptFamily(play?.concept,play?.type);
+}
+
 function splitFromData(arr){
   let x={run:0,pass:0,rpo:0,screen:0};
   arr.forEach(p=>{
@@ -1990,6 +2022,9 @@ function autoPhase(){
 function logPlay(){
   let concept=val('g-actual'); if(!concept)return alert('Select actual concept.');
   let preds=computePreds(), top3=preds.slice(0,3).map(p=>p.name), cur=currentSit();
+  let split=runPassSplit(preds);
+  let predictedPlayFamily=familyPredictionFromSplit(split);
+  let actualPlayFamily=conceptFamily(concept);
   let star=val('g-star-actual')==='unknown'?val('g-star'):val('g-star-actual');
   let play={
     id:ST.live.length+1, ...cur, star,
@@ -1998,6 +2033,9 @@ function logPlay(){
     predictionLead:(preds[0]?.pct||0)-(preds[1]?.pct||0),
     predictionConfidence:confidence(preds),
     predictionSnapshot:preds.slice(0,5).map(p=>({name:p.name,pct:p.pct,type:p.type})),
+    playFamilyPrediction:{Run:split.r,Pass:split.p,RPO:split.o,Screen:split.s},
+    predictedPlayFamily, actualPlayFamily,
+    playFamilyHit:predictedPlayFamily===actualPlayFamily,
     concept, type:typeOf(concept),
     direction:val('g-dir'), gap:val('g-gap'), result:val('g-result'),
     explosive:['xp','td'].includes(val('g-result'))?'1':'0',
@@ -2858,7 +2896,7 @@ function renderReports(){
   if($('r-pregame'))$('r-pregame').innerHTML=pregameReportHtml();
   if($('pregame-kpis'))$('pregame-kpis').innerHTML=[['Film plays',film.length],['Sample trust',reliableLabel(film.length)],['Top concept',reportTop(film)?.name||'—'],['Halftime history',(filterFirstHalf(film).length>=5&&filterSecondHalf(film).length>=5)?'Available':'Limited']].map(([l,v])=>`<div class="kpi"><span class="kpi-val">${esc(v)}</span><div class="kpi-label">${l}</div></div>`).join('');
   if($('r-kpis'))$('r-kpis').innerHTML=[['Live plays',live.length],['Damage plays',live.filter(p=>['l','xp','td'].includes(p.result)).length],['Top-1 acc',live.length?Math.round(live.filter(p=>p.top1hit).length/live.length*100)+'%':'—'],['Top-3 acc',live.length?Math.round(live.filter(p=>p.top3hit).length/live.length*100)+'%':'—']].map(([l,v])=>`<div class="kpi"><span class="kpi-val">${v}</span><div class="kpi-label">${l}</div></div>`).join('');
-  if($('postgame-kpis'))$('postgame-kpis').innerHTML=[['Live plays',live.length],['Run/pass grade',live.length?Math.round(live.filter(p=>{const predType=typeOf(p.predicted);return predType===(p.type||typeOf(p.concept));}).length/live.length*100)+'%':'—'],['Top-1',live.length?pct(live.filter(p=>p.top1hit).length,live.length)+'%':'—'],['Top-3',live.length?pct(live.filter(p=>p.top3hit).length,live.length)+'%':'—']].map(([l,v])=>`<div class="kpi"><span class="kpi-val">${v}</span><div class="kpi-label">${l}</div></div>`).join('');
+  if($('postgame-kpis'))$('postgame-kpis').innerHTML=[['Live plays',live.length],['Play family',live.length?pct(live.filter(playFamilyHit).length,live.length)+'%':'—'],['Top-1',live.length?pct(live.filter(p=>p.top1hit).length,live.length)+'%':'—'],['Top-3',live.length?pct(live.filter(p=>p.top3hit).length,live.length)+'%':'—']].map(([l,v])=>`<div class="kpi"><span class="kpi-val">${v}</span><div class="kpi-label">${l}</div></div>`).join('');
   if($('r-changes'))$('r-changes').innerHTML=biggestFilmLiveChanges(film,live);
   if($('r-problems'))$('r-problems').innerHTML=liveProblemHtml(live);
   if($('r-history'))$('r-history').innerHTML=historicalHalftimeInsights(film).map(x=>`<div class="trend-line"><span>${esc(x)}</span></div>`).join('');
@@ -2871,7 +2909,7 @@ function renderReports(){
   if($('r-usage'))$('r-usage').innerHTML=live.length?statBars(countBy(live,'concept'),live.length):'<div class="empty-state">No live plays yet.</div>';
   const sits={};live.forEach(p=>{let k=`${p.down}/${DIST_LABEL[p.dist]||p.dist}`;(sits[k]??=[]).push(p);});
   if($('r-sits'))$('r-sits').innerHTML=Object.entries(sits).map(([k,a])=>`<div class="trend-line"><b>${k}</b><span>${topEntry(countBy(a,'concept'))?.[0]||'—'} (${a.length})</span></div>`).join('')||'<div class="empty-state">No live situations yet.</div>';
-  if($('r-accuracy'))$('r-accuracy').innerHTML=live.length?`<div class="trend-line"><b>Top-1</b><span>${live.filter(p=>p.top1hit).length}/${live.length}</span></div><div class="trend-line"><b>Top-3</b><span>${live.filter(p=>p.top3hit).length}/${live.length}</span></div><div class="trend-line"><b>Run / pass family</b><span>${live.filter(p=>typeOf(p.predicted)===(p.type||typeOf(p.concept))).length}/${live.length}</span></div>`:'<div class="empty-state">No graded plays yet.</div>';
+  if($('r-accuracy'))$('r-accuracy').innerHTML=live.length?`<div class="trend-line"><b>Top-1</b><span>${live.filter(p=>p.top1hit).length}/${live.length}</span></div><div class="trend-line"><b>Top-3</b><span>${live.filter(p=>p.top3hit).length}/${live.length}</span></div><div class="trend-line"><b>Play family</b><span>${live.filter(playFamilyHit).length}/${live.length}</span></div>`:'<div class="empty-state">No graded plays yet.</div>';
   if($('r-reliability'))$('r-reliability').innerHTML=predictionReliabilityHtml(live);
   if($('r-dna'))$('r-dna').innerHTML=coordinatorDna([...film,...live]).map(x=>`<div class="trend-line"><span>${esc(x)}</span></div>`).join('');
   setReportViewDisplayOnly();
@@ -2921,6 +2959,7 @@ function renderDashboard(){
   if($('d-film'))$('d-film').textContent=ST.film.length;
   if($('d-top1'))$('d-top1').textContent=live.length?Math.round(live.filter(p=>p.top1hit).length/live.length*100)+'%':'—';
   if($('d-top3'))$('d-top3').textContent=live.length?Math.round(live.filter(p=>p.top3hit).length/live.length*100)+'%':'—';
+  if($('d-family'))$('d-family').textContent=live.length?Math.round(live.filter(playFamilyHit).length/live.length*100)+'%':'—';
   renderChecklist();
   renderDashPred(computePreds());
 }
@@ -3357,7 +3396,7 @@ function importBackup(e){ let f=e.target.files?.[0]; if(!f)return; let r=new Fil
 
 function resetAll(){ if(!confirm('Reset EVERYTHING? This cannot be undone.'))return; localStorage.removeItem('dpp_v4'); location.reload(); }
 
-function rowsCSV(arr){ let head=['Source','Q','Down','Dist','Zone','Pers','Form','Str','Hash','Tempo','Phase','Star','Pred1','PredictionPct','PredictionLead','PredictionConfidence','Actual','Result','Explosive','Top1Hit','Top3Hit']; let lines=[head]; arr.forEach(p=>lines.push([p.source,p.quarter,p.down,DIST_LABEL[p.dist]||p.dist,ZONE_LABEL[p.zone]||p.zone,p.personnel,p.formation,p.strength,p.hash,p.tempo,p.phase,p.star,p.predicted||'',storedPredictionPct(p)!=null?(storedPredictionPct(p)*100).toFixed(1):'',storedPredictionLead(p)!=null?(storedPredictionLead(p)*100).toFixed(1):'',p.predictionConfidence||'',p.concept,RES_LABEL[p.result]||p.result,p.explosive,p.top1hit?1:'',p.top3hit?1:''].map(x=>`"${String(x??'').replace(/"/g,'""')}"`)));return lines.map(r=>r.join(',')).join('\n'); }
+function rowsCSV(arr){ let head=['Source','Q','Down','Dist','Zone','Pers','Form','Str','Hash','Tempo','Phase','Star','Pred1','PredictionPct','PredictionLead','PredictionConfidence','PredictedPlayFamily','ActualPlayFamily','PlayFamilyHit','RunPct','PassPct','RPOPct','ScreenPct','Actual','Result','Explosive','Top1Hit','Top3Hit']; let lines=[head]; arr.forEach(p=>{const fp=p.playFamilyPrediction||{};lines.push([p.source,p.quarter,p.down,DIST_LABEL[p.dist]||p.dist,ZONE_LABEL[p.zone]||p.zone,p.personnel,p.formation,p.strength,p.hash,p.tempo,p.phase,p.star,p.predicted||'',storedPredictionPct(p)!=null?(storedPredictionPct(p)*100).toFixed(1):'',storedPredictionLead(p)!=null?(storedPredictionLead(p)*100).toFixed(1):'',p.predictionConfidence||'',familyPredictionForPlay(p),conceptFamily(p.concept,p.type),playFamilyHit(p)?1:0,fp.Run!=null?(fp.Run*100).toFixed(1):'',fp.Pass!=null?(fp.Pass*100).toFixed(1):'',fp.RPO!=null?(fp.RPO*100).toFixed(1):'',fp.Screen!=null?(fp.Screen*100).toFixed(1):'',p.concept,RES_LABEL[p.result]||p.result,p.explosive,p.top1hit?1:'',p.top3hit?1:''].map(x=>`"${String(x??'').replace(/"/g,'""')}"`))});return lines.map(r=>r.join(',')).join('\n'); }
 function download(name,content,type){ let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=name;a.click(); }
 function downloadCsv(which){ let arr=which==='live'?ST.live:[...ST.film,...ST.live]; download(`dpp_${ST.opp}_${which}.csv`,rowsCSV(arr),'text/csv'); }
 
