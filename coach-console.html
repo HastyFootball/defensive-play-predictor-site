@@ -758,6 +758,39 @@ input[type=file] { background: transparent; border: none; padding: 0; }
   </div>
 </div>
 
+<!-- Live play editor -->
+<div class="film-edit-overlay" id="liveEditOverlay" role="dialog" aria-modal="true" aria-labelledby="liveEditTitle" onclick="liveEditorBackdrop(event)">
+  <div class="film-edit-dialog">
+    <div class="film-edit-head">
+      <div><h2 id="liveEditTitle">Edit Live Play</h2><p id="liveEditSubtitle">Correct what actually happened without changing the original prediction.</p></div>
+      <button class="film-edit-close" type="button" aria-label="Close editor" onclick="closeLiveEditor()">×</button>
+    </div>
+    <div class="g5">
+      <div><label>Quarter</label><select id="le-qtr"><option>1</option><option>2</option><option>3</option><option>4</option><option>OT</option></select></div>
+      <div><label>Down</label><select id="le-down"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
+      <div><label>Distance</label><select id="le-dist"><option value="short">1-3</option><option value="normal">4-6</option><option value="long">7-10</option><option value="xlong">11+</option></select></div>
+      <div><label>Field Zone</label><select id="le-zone"><option value="own">Own</option><option value="mid">Mid</option><option value="hrz">HRZ</option><option value="rz">RZ</option><option value="gl">GL</option></select></div>
+      <div><label>Personnel</label><select id="le-pers"><option>10</option><option>11</option><option>12</option><option>20</option><option>21</option><option>heavy</option><option>empty</option></select></div>
+      <div><label>Formation</label><select id="le-form"></select></div>
+      <div><label>Strength</label><select id="le-str"><option value="R">Right</option><option value="L">Left</option></select></div>
+      <div><label>Hash</label><select id="le-hash"><option value="mid">Middle</option><option value="L">Left</option><option value="R">Right</option></select></div>
+      <div><label>Score</label><select id="le-score"><option value="lead2">Ahead 10+</option><option value="lead">Ahead 4-9</option><option value="close">Within 3</option><option value="trail">Behind 4-9</option><option value="trail2">Behind 10+</option></select></div>
+      <div><label>Tempo</label><select id="le-tempo"><option value="normal">Normal</option><option value="hurry">Hurry-up</option><option value="slow">Check-w-me</option></select></div>
+      <div><label>Drive Phase</label><select id="le-phase"><option value="normal">Normal</option><option value="first">First play of drive</option><option value="afterExplosive">After explosive</option><option value="afterStuff">After stuffed</option><option value="redzone">Red-zone sequence</option></select></div>
+      <div><label>Intended Concept</label><select id="le-concept"></select></div>
+      <div><label>Star</label><select id="le-star"><option value="unknown">Unknown</option><option value="on">On</option><option value="off">Off</option></select></div>
+      <div><label>Direction</label><select id="le-dir"><option value="">—</option><option value="L">Left</option><option value="M">Middle</option><option value="R">Right</option></select></div>
+      <div><label>Gap</label><select id="le-gap"><option value="">—</option><option>A</option><option>B</option><option>C</option><option>D</option><option value="edge">Edge</option></select></div>
+      <div><label>Result</label><select id="le-result"><option value="">—</option><option value="neg">Neg/TFL</option><option value="s">0-3</option><option value="m">4-6</option><option value="l">7-10</option><option value="xp">11+</option><option value="td">TD</option></select></div>
+    </div>
+    <div class="note" style="margin-top:14px">The original prediction and percentages stay unchanged. Saving only corrects the actual play and recalculates Top-1, Top-3, and PLAY TYPE accuracy.</div>
+    <div class="film-edit-footer">
+      <div><button class="btn btn-danger" type="button" onclick="deleteLivePlayFromEditor()">Delete this play</button></div>
+      <div><button class="btn" type="button" onclick="closeLiveEditor()">Cancel</button><button class="btn btn-good" type="button" onclick="saveLivePlayEdit()">Save changes</button></div>
+    </div>
+  </div>
+</div>
+
   <!-- Tendency analytics -->
   <div class="card" id="prep-analytics">
     <div class="card-title">Tendency Analytics</div>
@@ -960,7 +993,7 @@ input[type=file] { background: transparent; border: none; padding: 0; }
     </div>
     <div class="tablewrap">
       <table>
-        <thead><tr><th>#</th><th>Q</th><th>Dn/Dist</th><th>Zone</th><th>Pers</th><th>Form</th><th>Star</th><th>Predicted</th><th>Actual</th><th>Result</th><th>Hit</th></tr></thead>
+        <thead><tr><th>#</th><th>Q</th><th>Dn/Dist</th><th>Zone</th><th>Pers</th><th>Form</th><th>Star</th><th>Predicted</th><th>Actual</th><th>Result</th><th>Hit</th><th>Actions</th></tr></thead>
         <tbody id="liveBody"></tbody>
       </table>
     </div>
@@ -2063,7 +2096,7 @@ function clearFilm(){ if(!confirm('Clear all film plays?'))return; ST.film=[]; s
 function renderLiveLog(){
   let b=$('liveBody'); if(!b)return;
   if($('liveCount'))$('liveCount').textContent=ST.live.length;
-  if(!ST.live.length){ b.innerHTML='<tr><td colspan="11" class="empty-state">No live plays logged yet.</td></tr>'; return; }
+  if(!ST.live.length){ b.innerHTML='<tr><td colspan="12" class="empty-state">No live plays logged yet.</td></tr>'; return; }
   b.innerHTML=[...ST.live].reverse().map(p=>`
     <tr>
       <td>${p.id}</td><td>${p.quarter||''}</td>
@@ -2073,8 +2106,128 @@ function renderLiveLog(){
       <td>${p.star||'?'}</td><td>${esc(p.predicted)}</td>
       <td>${esc(p.concept)}</td><td>${RES_LABEL[p.result]||p.result||'—'}</td>
       <td class="${p.top1hit?'hit':p.top3hit?'t3':'miss'}">${p.top1hit?'HIT✓':p.top3hit?'T3':'—'}</td>
+      <td><div class="film-actions"><button class="btn btn-sm" type="button" onclick="openLiveEditor(${ST.live.indexOf(p)})">Edit</button></div></td>
     </tr>`).join('');
 }
+
+// ─── LIVE PLAY EDITOR ────────────────────────────────────────
+let editingLiveIndex = null;
+
+function refreshLiveViews(){
+  silentSave();
+  renderLiveLog();
+  if(typeof renderDashboard==='function') renderDashboard();
+  if(typeof renderReports==='function') renderReports();
+  if(typeof renderAnalytics==='function') renderAnalytics();
+  runPredict();
+  updateNavHeader();
+}
+
+function populateLiveEditorSelects(play){
+  const concepts=activeConcepts();
+  const currentConcept=String(play?.concept||'');
+  const conceptList=currentConcept&&!concepts.includes(currentConcept)?[currentConcept,...concepts]:concepts;
+  if($('le-concept')) $('le-concept').innerHTML='<option value="">— select —</option>'+conceptList.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+
+  const formations=allFormations().map(f=>f.name);
+  const currentForm=String(play?.formation||'');
+  const formList=currentForm&&!formations.includes(currentForm)?[currentForm,...formations]:formations;
+  if($('le-form')) $('le-form').innerHTML=formList.map(f=>`<option value="${esc(f)}">${esc(f)}</option>`).join('');
+}
+
+function openLiveEditor(index){
+  const play=ST.live[index]; if(!play)return;
+  editingLiveIndex=index;
+  populateLiveEditorSelects(play);
+  setSelectValue('le-qtr',play.quarter,'1');
+  setSelectValue('le-down',play.down,'1');
+  setSelectValue('le-dist',play.dist,'normal');
+  setSelectValue('le-zone',play.zone,'own');
+  setSelectValue('le-pers',play.personnel,'11');
+  setSelectValue('le-form',play.formation,'2x2');
+  setSelectValue('le-str',play.strength,'R');
+  setSelectValue('le-hash',play.hash,'mid');
+  setSelectValue('le-score',play.score,'close');
+  setSelectValue('le-tempo',play.tempo,'normal');
+  setSelectValue('le-phase',play.phase,'normal');
+  setSelectValue('le-concept',play.concept,'');
+  setSelectValue('le-star',play.star,'unknown');
+  setSelectValue('le-dir',play.direction,'');
+  setSelectValue('le-gap',play.gap,'');
+  setSelectValue('le-result',play.result,'');
+  if($('liveEditSubtitle')) $('liveEditSubtitle').textContent=`Editing live play ${index+1} of ${ST.live.length}. Original prediction: ${play.predicted||'—'}.`;
+  $('liveEditOverlay')?.classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function closeLiveEditor(){
+  $('liveEditOverlay')?.classList.remove('open');
+  document.body.style.overflow='';
+  editingLiveIndex=null;
+}
+
+function liveEditorBackdrop(event){
+  if(event.target?.id==='liveEditOverlay') closeLiveEditor();
+}
+
+function predictionSplitFromSavedPlay(play){
+  const saved=play?.playFamilyPrediction;
+  if(saved && typeof saved==='object') return {r:+saved.Run||0,p:+saved.Pass||0,o:+saved.RPO||0,s:+saved.Screen||0};
+  const snapshot=Array.isArray(play?.predictionSnapshot)?play.predictionSnapshot:[];
+  return runPassSplit(snapshot);
+}
+
+function saveLivePlayEdit(){
+  if(editingLiveIndex===null||!ST.live[editingLiveIndex])return;
+  const concept=val('le-concept');
+  if(!concept)return alert('Pick the intended concept before saving.');
+  const old=ST.live[editingLiveIndex];
+  const savedTop3=Array.isArray(old.top3)?old.top3:[];
+  const split=predictionSplitFromSavedPlay(old);
+  const predictedPlayFamily=old.predictedPlayFamily||familyPredictionFromSplit(split);
+  const actualPlayFamily=conceptFamily(concept);
+  ST.live[editingLiveIndex]={
+    ...old,
+    quarter:val('le-qtr'),down:val('le-down'),dist:val('le-dist'),zone:val('le-zone'),
+    personnel:val('le-pers'),formation:val('le-form')||'2x2',
+    strength:val('le-str'),hash:val('le-hash'),score:val('le-score'),tempo:val('le-tempo'),phase:val('le-phase'),
+    star:val('le-star'),concept,type:typeOf(concept),actualPlayFamily,
+    playFamilyPrediction:{Run:split.r,Pass:split.p,RPO:split.o,Screen:split.s},
+    predictedPlayFamily,playFamilyHit:predictedPlayFamily===actualPlayFamily,
+    direction:val('le-dir'),gap:val('le-gap'),result:val('le-result'),
+    explosive:['xp','td'].includes(val('le-result'))?'1':'0',
+    top1hit:(old.predicted||savedTop3[0]||'')===concept,
+    top3hit:savedTop3.includes(concept),
+    editedAt:new Date().toISOString()
+  };
+  closeLiveEditor();
+  refreshLiveViews();
+  toast('Live play updated');
+}
+
+function deleteLivePlay(index){
+  const play=ST.live[index]; if(!play)return;
+  const label=play.concept?` (${play.concept})`:'';
+  if(!confirm(`Delete live play ${index+1}${label}? This cannot be undone.`))return;
+  ST.live.splice(index,1);
+  ST.live.forEach((p,i)=>p.id=i+1);
+  refreshLiveViews();
+  toast('Live play deleted');
+}
+
+function deleteLivePlayFromEditor(){
+  if(editingLiveIndex===null)return;
+  const index=editingLiveIndex;
+  const play=ST.live[index]; if(!play)return;
+  const label=play.concept?` (${play.concept})`:'';
+  if(!confirm(`Delete live play ${index+1}${label}? This cannot be undone.`))return;
+  ST.live.splice(index,1);
+  ST.live.forEach((p,i)=>p.id=i+1);
+  closeLiveEditor();
+  refreshLiveViews();
+  toast('Live play deleted');
+}
+
 
 // ─── FILM LIB ────────────────────────────────────────────────
 let editingFilmIndex = null;
@@ -2203,7 +2356,9 @@ function deleteFilmPlayFromEditor(){
 }
 
 document.addEventListener('keydown',event=>{
-  if(event.key==='Escape'&&$('filmEditOverlay')?.classList.contains('open')) closeFilmEditor();
+  if(event.key!=='Escape')return;
+  if($('liveEditOverlay')?.classList.contains('open')) closeLiveEditor();
+  else if($('filmEditOverlay')?.classList.contains('open')) closeFilmEditor();
 });
 
 function addFilmPlay(){
