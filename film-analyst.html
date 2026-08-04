@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Film Intelligence Lab | Analyst Assist</title>
+  <link rel="stylesheet" href="assets/styles.css">
+  <link rel="stylesheet" href="assets/film-analyst.css">
+</head>
+<body class="fil-page">
+<header class="fil-header">
+  <div>
+    <div class="fil-eyebrow">ANALYST ASSIST</div>
+    <h1>Film Intelligence Lab <span>Six-Stage Vision</span></h1>
+    <p>Share Hudl, mark the ball and quarterback, then review one automated football read.</p>
+  </div>
+  <div class="fil-header-actions">
+    <a class="fil-btn" href="coach-console.html">Coach Console</a>
+    <button class="fil-btn fil-primary" id="shareBtn">Share Hudl Film</button>
+  </div>
+</header>
+
+<section class="fil-statusbar">
+  <div><span class="fil-dot" id="sourceDot"></span><strong id="sourceStatus">No film source</strong><small id="sourceDetail">Choose a Hudl tab, window, monitor, or upload a clip.</small></div>
+  <div><span class="fil-dot" id="modelDot"></span><strong id="modelStatus">Loading vision engine</strong><small id="modelDetail">Browser inference initializes once.</small></div>
+  <div><span class="fil-dot" id="profileDot"></span><strong id="profileStatus">Angle profile incomplete</strong><small id="profileDetail">Set sidelines and crop once for this angle.</small></div>
+  <div class="fil-stat"><span>Saved plays</span><strong id="datasetCount">0</strong></div>
+</section>
+
+<nav class="fil-stage-nav" aria-label="Film analysis stages">
+  <button data-stage-tab="1" class="active"><b>1</b>Detect</button>
+  <button data-stage-tab="2"><b>2</b>Separate</button>
+  <button data-stage-tab="3"><b>3</b>Roles</button>
+  <button data-stage-tab="4"><b>4</b>Formation</button>
+  <button data-stage-tab="5"><b>5</b>Tells</button>
+  <button data-stage-tab="6"><b>6</b>Concept</button>
+</nav>
+
+<main class="fil-shell">
+  <section class="fil-viewer-card">
+    <div class="fil-toolbar">
+      <div class="fil-row">
+        <button class="fil-btn fil-small" id="stopShareBtn" disabled>Stop</button>
+        <button class="fil-btn fil-small" id="freezeBtn" disabled>1. Freeze Pre-Snap</button>
+        <button class="fil-btn fil-small" id="ballModeBtn" disabled>2. Mark Ball</button>
+        <button class="fil-btn fil-small" id="qbModeBtn" disabled>3. Mark QB</button>
+        <button class="fil-btn fil-small fil-good" id="analyzeBtn" disabled>4. Analyze Pre-Snap</button>
+      </div>
+      <div class="fil-row">
+        <button class="fil-btn fil-small" id="captureSnapBtn" disabled>Capture Snap</button>
+        <button class="fil-btn fil-small" id="captureEndBtn" disabled>Capture End</button>
+        <button class="fil-btn fil-small fil-accent" id="analyzePlayBtn" disabled>Analyze Play</button>
+        <button class="fil-btn fil-small" id="resetPlayBtn" disabled>Reset Play</button>
+      </div>
+      <div class="fil-row fil-workspace-controls">
+        <button class="fil-btn fil-small" id="toggleSidebarBtn" type="button">Hide Details</button>
+        <button class="fil-btn fil-small" id="focusModeBtn" type="button">Focus Mode</button>
+        <button class="fil-btn fil-small" id="fullscreenStageBtn" type="button">Fullscreen Video</button>
+        <label class="fil-size-label">Video size
+          <select id="stageSizeInput">
+            <option value="large">Large</option>
+            <option value="xl" selected>Extra large</option>
+            <option value="max">Maximum</option>
+          </select>
+        </label>
+        <button class="fil-btn fil-small" id="compactLabelsBtn" type="button">Compact Labels: On</button>
+        <button class="fil-btn fil-small" id="lockFormationBtn" type="button" disabled>Lock Formation</button>
+      </div>
+    </div>
+
+    <div class="fil-stage" id="stage">
+      <video id="filmVideo" autoplay muted playsinline></video>
+      <canvas id="frameCanvas"></canvas>
+      <canvas id="overlayCanvas"></canvas>
+      <div class="fil-empty" id="emptyState"><strong>Share Hudl film to begin</strong><span>Use the guided setup once, then Ball → QB → Analyze on each play.</span></div>
+      <div class="fil-mode-pill" id="modePill">IDLE</div>
+      <div class="fil-quality" id="qualityBadge">Waiting for film</div>
+    </div>
+    <div class="fil-stage-hint" id="stageHint">Set up one reusable angle profile before processing plays.</div>
+
+    <div class="fil-correction-bar" id="correctionBar">
+      <span>Overlay edit:</span>
+      <button class="fil-btn fil-tiny active" data-edit-mode="move-resize">Move / Resize</button>
+      <button class="fil-btn fil-tiny" data-edit-mode="select">Select Box</button>
+      <label class="fil-role-label">Position
+        <select id="positionRoleSelect" disabled>
+          <option value="">Auto / Unassigned</option>
+          <option value="QB">QB</option>
+          <option value="LT">LT</option><option value="LG">LG</option><option value="C">Center</option><option value="RG">RG</option><option value="RT">RT</option>
+          <option value="TE">TE</option><option value="H">H-Back</option><option value="FB">FB</option><option value="RB">RB</option>
+          <option value="WR-L">Outside WR Left</option><option value="SLOT-L">Slot Left</option><option value="SLOT-R">Slot Right</option><option value="WR-R">Outside WR Right</option><option value="WR">WR (generic)</option>
+          <option value="DEFENSE">Defense</option><option value="OFFICIAL">Official</option>
+        </select>
+      </label>
+      <button class="fil-btn fil-tiny" id="unlockRoleBtn" disabled>Unlock Position</button>
+      <button class="fil-btn fil-tiny" data-edit-mode="add-offense">+ Offense</button>
+      <button class="fil-btn fil-tiny" data-edit-mode="add-defense">+ Defense</button>
+      <button class="fil-btn fil-tiny" data-edit-mode="add-official">+ Official</button>
+      <button class="fil-btn fil-tiny" data-edit-mode="remove">Remove</button>
+      <button class="fil-btn fil-tiny" id="undoEditBtn" disabled>Undo Last Edit</button>
+      <button class="fil-btn fil-tiny" id="retryDetectionBtn" disabled>Recalculate Positions</button>
+    </div>
+  </section>
+
+  <aside class="fil-sidebar">
+    <section class="fil-card fil-setup-card">
+      <div class="fil-card-title">Session & angle profile</div>
+      <label>Opponent<input id="opponentInput" placeholder="Opponent name"></label>
+      <div class="fil-two">
+        <label>Quarter<select id="quarterInput"><option value="1">1st</option><option value="2">2nd</option><option value="3">3rd</option><option value="4">4th</option><option value="OT">OT / Cutup</option></select></label>
+        <label>Q1 offense direction<select id="q1DirectionInput"><option value="ltr">Left to right</option><option value="rtl">Right to left</option></select></label>
+      </div>
+      <div class="fil-direction-card"><span>Direction this play</span><strong id="effectiveDirection">Left to right</strong><button class="fil-btn fil-tiny" id="flipDirectionBtn">Flip</button></div>
+      <label>Film angle<select id="angleInput"><option>Sideline</option><option>Wide</option><option>End zone</option><option>Other</option></select></label>
+      <label>Formation side orientation<select id="sideOrientationInput"><option value="normal">Normal left/right</option><option value="swap">Swap left/right</option></select></label>
+      <div class="fil-grid-buttons">
+        <button class="fil-btn fil-small" id="cropModeBtn" disabled>Set Video Crop</button>
+        <button class="fil-btn fil-small" id="sidelineModeBtn" disabled>Set Sidelines</button>
+        <button class="fil-btn fil-small" id="sampleOffenseBtn" disabled>Sample Offense</button>
+        <button class="fil-btn fil-small" id="sampleDefenseBtn" disabled>Sample Defense</button>
+      </div>
+      <button class="fil-btn fil-full" id="saveProfileBtn" disabled>Save Angle Profile</button>
+      <p class="fil-smalltext">Crop, sidelines, and uniform samples are reused across every play from this angle.</p>
+    </section>
+
+    <section class="fil-card">
+      <div class="fil-row fil-spread"><div class="fil-card-title">Six-stage analysis</div><span class="fil-chip" id="analysisStatus">Waiting</span></div>
+      <div class="fil-progress"><span id="analysisProgress"></span></div>
+      <div id="analysisResults" class="fil-results"><div class="fil-empty-list">Freeze, mark ball, mark QB, then analyze.</div></div>
+    </section>
+
+    <section class="fil-card">
+      <div class="fil-card-title">One-screen review</div>
+      <div class="fil-two">
+        <label>Formation<input id="formationInput" placeholder="Auto-filled"></label>
+        <label>Personnel<select id="personnelInput"><option value="">Unknown</option><option>10</option><option>11</option><option>12</option><option>13</option><option>20</option><option>21</option><option>22</option><option>Empty</option></select></label>
+      </div>
+      <div class="fil-alternatives" id="formationAlternatives"></div>
+      <div class="fil-two">
+        <label>Play type<select id="playTypeInput"><option value="">Choose after play</option><option>Run</option><option>Pass</option><option>RPO</option><option>Screen</option><option>Special / Other</option></select></label>
+        <label>Direction<select id="playDirectionInput"><option value="">Unknown</option><option>Left</option><option>Middle</option><option>Right</option></select></label>
+      </div>
+      <label>Concept<input id="conceptInput" placeholder="Counter, Outside Zone, Bubble..."></label>
+      <div class="fil-alternatives" id="conceptAlternatives"></div>
+      <label>Ball carrier / target<input id="ballCarrierInput" placeholder="RB, QB, WR #2..."></label>
+      <label>Result<select id="resultInput"><option value="">Unknown</option><option>Loss</option><option>0–3</option><option>4–6</option><option>7–10</option><option>10+</option><option>Incomplete</option><option>Touchdown</option><option>Turnover</option></select></label>
+      <label>Notes<textarea id="notesInput" rows="2" placeholder="Optional correction or coaching note"></textarea></label>
+      <div class="fil-row">
+        <button class="fil-btn fil-danger fil-full" id="badDetectionBtn" disabled>Bad Detection</button>
+        <button class="fil-btn fil-good fil-full" id="savePlayBtn" disabled>Save & Next</button>
+      </div>
+    </section>
+  </aside>
+</main>
+
+<section class="fil-intelligence-grid">
+  <article class="fil-card">
+    <div class="fil-row fil-spread"><div><div class="fil-card-title">Alignment Intelligence</div><p>Baselines become useful after repeated examples.</p></div><button class="fil-btn fil-small" id="refreshTellsBtn">Refresh</button></div>
+    <div id="tendencyPanel" class="fil-tendency-panel"><div class="fil-empty-list">Save labeled plays to build opponent baselines and alignment tells.</div></div>
+  </article>
+  <article class="fil-card">
+    <div class="fil-card-title">Dataset & model readiness</div>
+    <div id="readinessPanel" class="fil-readiness"></div>
+    <div class="fil-row fil-wrap">
+      <button class="fil-btn fil-small" id="exportJsonBtn">Export Full JSON</button>
+      <button class="fil-btn fil-small" id="exportCsvBtn">Export CSV</button>
+      <button class="fil-btn fil-small" id="exportTrainingBtn">Export Training Manifest</button>
+      <label class="fil-btn fil-small fil-file-btn">Import Dataset<input type="file" id="importDatasetInput" accept="application/json"></label>
+      <button class="fil-btn fil-small fil-danger" id="clearDatasetBtn">Clear</button>
+    </div>
+  </article>
+</section>
+
+<section class="fil-dataset">
+  <div class="fil-row fil-spread"><div><div class="fil-card-title">Saved film examples</div><p>Every moved, resized, added, removed, or reclassified box is saved as corrected training data.</p></div></div>
+  <div class="fil-table-wrap"><table><thead><tr><th>#</th><th>Qtr</th><th>Formation</th><th>Personnel</th><th>Play</th><th>Offense</th><th>Confidence</th><th></th></tr></thead><tbody id="datasetBody"></tbody></table></div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js"></script>
+<script src="assets/film-analyst.js"></script>
+</body>
+</html>
