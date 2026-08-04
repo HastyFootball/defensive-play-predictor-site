@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Film Analyst | Analyst Assist</title>
+  <link rel="stylesheet" href="assets/styles.css">
+  <link rel="stylesheet" href="assets/film-analyst.css">
+</head>
+<body class="fa-page">
+<header class="fa-header">
+  <div>
+    <div class="fa-eyebrow">ANALYST ASSIST</div>
+    <h1>Film <span>Analyst</span></h1>
+    <p>Capture Hudl or another film window, measure pre-snap alignment, label plays, and build a reusable training set.</p>
+  </div>
+  <div class="fa-header-actions">
+    <a class="fa-btn" href="coach-console.html">Coach Console</a>
+    <a class="fa-btn" href="prep-center.html">Prep Center</a>
+    <button class="fa-btn fa-primary" id="shareBtn">Share film screen</button>
+  </div>
+</header>
+
+<div class="fa-statusbar">
+  <div><span class="fa-dot" id="sourceDot"></span><strong id="sourceStatus">No film source shared</strong><small id="sourceDetail">Choose a Hudl tab, window, or monitor.</small></div>
+  <div class="fa-score"><span>Dataset</span><strong id="datasetCount">0 plays</strong></div>
+</div>
+
+<main class="fa-shell">
+  <section class="fa-viewer-card">
+    <div class="fa-toolbar">
+      <div class="fa-row">
+        <button class="fa-btn fa-small" id="stopShareBtn" disabled>Stop sharing</button>
+        <button class="fa-btn fa-small" id="cropModeBtn" disabled>Set video crop</button>
+        <button class="fa-btn fa-small" id="calibrateBtn" disabled>Calibrate field</button>
+        <button class="fa-btn fa-small" id="clearOverlayBtn" disabled>Clear marks</button>
+      </div>
+      <div class="fa-row">
+        <button class="fa-btn fa-small" id="freezeBtn" disabled>Freeze pre-snap</button>
+        <button class="fa-btn fa-small" id="snapFrameBtn" disabled>Capture snap</button>
+        <button class="fa-btn fa-small" id="endFrameBtn" disabled>Capture end</button>
+        <button class="fa-btn fa-small fa-good" id="analyzeBtn" disabled>Analyze measurements</button>
+      </div>
+    </div>
+
+    <div class="fa-stage" id="stage">
+      <video id="filmVideo" autoplay muted playsinline></video>
+      <canvas id="frameCanvas"></canvas>
+      <canvas id="overlayCanvas"></canvas>
+      <div class="fa-empty" id="emptyState">
+        <strong>Share the film window to begin</strong>
+        <span>Press “Share film screen,” then choose the Hudl tab or window. A second monitor is helpful but not required.</span>
+      </div>
+      <div class="fa-mode-pill" id="modePill">IDLE</div>
+    </div>
+
+    <div class="fa-hint" id="stageHint">The first version is supervised. You choose the film source and mark key reference points; Film Analyst calculates alignment measurements and saves the labeled example.</div>
+  </section>
+
+  <aside class="fa-sidebar">
+    <section class="fa-card">
+      <div class="fa-card-title">1. Film setup</div>
+      <label>Opponent<input id="opponentInput" placeholder="Opponent name"></label>
+      <div class="fa-two">
+        <label>Game<input id="gameInput" placeholder="Week / game"></label>
+        <label>Angle<select id="angleInput"><option>Sideline</option><option>End zone</option><option>Wide</option><option>Other</option></select></label>
+      </div>
+      <div class="fa-two">
+        <label>Offense direction<select id="directionInput"><option value="ltr">Left to right</option><option value="rtl">Right to left</option></select></label>
+        <label>Units<select id="unitsInput"><option value="yards">Yards</option><option value="normalized">Normalized</option></select></label>
+      </div>
+      <button class="fa-btn fa-full" id="setupWizardBtn" disabled>Run guided calibration</button>
+    </section>
+
+    <section class="fa-card">
+      <div class="fa-row fa-spread"><div class="fa-card-title">2. Mark players</div><span class="fa-chip" id="markStatus">No frame</span></div>
+      <p class="fa-smalltext">Freeze a clear pre-snap frame, choose a role, then click the player’s center. Mark only what is visible.</p>
+      <div class="fa-role-grid" id="roleGrid"></div>
+      <div class="fa-row">
+        <button class="fa-btn fa-small" id="undoMarkBtn" disabled>Undo mark</button>
+        <button class="fa-btn fa-small" id="clearMarksBtn" disabled>Clear players</button>
+      </div>
+    </section>
+
+    <section class="fa-card">
+      <div class="fa-card-title">3. Measurements</div>
+      <div class="fa-measurements" id="measurements"><div class="fa-empty-list">Mark the field and players, then press Analyze measurements.</div></div>
+    </section>
+
+    <section class="fa-card">
+      <div class="fa-card-title">4. Label this play</div>
+      <div class="fa-two">
+        <label>Down<select id="downInput"><option>1</option><option>2</option><option>3</option><option>4</option></select></label>
+        <label>Distance<input id="distanceInput" type="number" min="0" max="99" value="10"></label>
+      </div>
+      <div class="fa-two">
+        <label>Formation<input id="formationInput" placeholder="Trips Right"></label>
+        <label>Personnel<input id="personnelInput" placeholder="11"></label>
+      </div>
+      <div class="fa-two">
+        <label>Play type<select id="playTypeInput"><option value="">Choose</option><option>Run</option><option>Pass</option><option>RPO</option><option>Screen</option><option>Special</option></select></label>
+        <label>Direction<select id="playDirectionInput"><option value="">Unknown</option><option>Left</option><option>Middle</option><option>Right</option></select></label>
+      </div>
+      <label>Concept<input id="conceptInput" placeholder="Counter, Outside Zone, Bubble..."></label>
+      <div class="fa-two">
+        <label>Ball carrier / target<input id="carrierInput" placeholder="#2 / RB / X"></label>
+        <label>Result<input id="resultInput" placeholder="+5, incomplete, TD"></label>
+      </div>
+      <label>Notes<textarea id="notesInput" rows="2" placeholder="WR #2 unusually deep; LT wider split..."></textarea></label>
+      <button class="fa-btn fa-good fa-full" id="savePlayBtn" disabled>Save labeled play</button>
+    </section>
+  </aside>
+</main>
+
+<section class="fa-dataset">
+  <div class="fa-row fa-spread">
+    <div><div class="fa-card-title">Training dataset</div><p>Every saved play includes frames, calibration, player coordinates, measurements, and your labels.</p></div>
+    <div class="fa-row">
+      <button class="fa-btn" id="exportJsonBtn">Export JSON</button>
+      <button class="fa-btn" id="exportCsvBtn">Export CSV</button>
+      <button class="fa-btn fa-danger" id="clearDatasetBtn">Clear dataset</button>
+    </div>
+  </div>
+  <div class="fa-table-wrap"><table><thead><tr><th>#</th><th>Opponent</th><th>Formation</th><th>Type</th><th>Concept</th><th>Key measurements</th><th></th></tr></thead><tbody id="datasetBody"></tbody></table></div>
+</section>
+
+<div class="fa-modal" id="wizardModal" hidden>
+  <div class="fa-modal-card">
+    <div class="fa-row fa-spread"><div><div class="fa-eyebrow">GUIDED FILM CALIBRATION</div><h2 id="wizardTitle">Prepare the frame</h2></div><button class="fa-icon" id="closeWizardBtn">×</button></div>
+    <div class="fa-progress"><i id="wizardProgress"></i></div>
+    <div id="wizardContent"></div>
+    <div class="fa-row fa-spread"><button class="fa-btn" id="wizardBackBtn">Back</button><span id="wizardStepText">Step 1 of 6</span><button class="fa-btn fa-primary" id="wizardNextBtn">Next</button></div>
+  </div>
+</div>
+
+<script src="assets/film-analyst.js"></script>
+</body>
+</html>
