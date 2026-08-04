@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Film Analyst | Ball Anchor</title>
+  <link rel="stylesheet" href="assets/styles.css">
+  <link rel="stylesheet" href="assets/film-analyst.css">
+</head>
+<body class="fa-page">
+<header class="fa-header">
+  <div>
+    <div class="fa-eyebrow">ANALYST ASSIST</div>
+    <h1>Film Analyst <span>Ball Anchor</span></h1>
+    <p>Click the ball once. Film Analyst attempts the pre-snap breakdown and leaves only corrections to you.</p>
+  </div>
+  <div class="fa-header-actions">
+    <a class="fa-btn" href="coach-console.html">Coach Console</a>
+    <button class="fa-btn fa-primary" id="shareBtn">Share Hudl film</button>
+  </div>
+</header>
+
+<div class="fa-statusbar">
+  <div><span class="fa-dot" id="sourceDot"></span><strong id="sourceStatus">No film source shared</strong><small id="sourceDetail">Choose the Hudl tab, window, or monitor.</small></div>
+  <div class="fa-score"><span>Saved dataset</span><strong id="datasetCount">0 plays</strong></div>
+</div>
+
+<main class="fa-shell">
+  <section class="fa-viewer-card">
+    <div class="fa-toolbar">
+      <div class="fa-row">
+        <button class="fa-btn fa-small" id="stopShareBtn" disabled>Stop sharing</button>
+        <button class="fa-btn fa-small" id="freezeBtn" disabled>1. Freeze pre-snap</button>
+        <button class="fa-btn fa-small" id="ballModeBtn" disabled>2. Mark ball</button>
+        <button class="fa-btn fa-small fa-good" id="readyBtn" disabled>3. Ready — analyze</button>
+      </div>
+      <div class="fa-row">
+        <button class="fa-btn fa-small" id="sampleOffenseBtn" disabled>Sample offense jersey</button>
+        <button class="fa-btn fa-small" id="cropModeBtn" disabled>Set video crop once</button>
+        <button class="fa-btn fa-small" id="resetPlayBtn" disabled>Reset play</button>
+      </div>
+    </div>
+
+    <div class="fa-stage" id="stage">
+      <video id="filmVideo" autoplay muted playsinline></video>
+      <canvas id="frameCanvas"></canvas>
+      <canvas id="overlayCanvas"></canvas>
+      <div class="fa-empty" id="emptyState"><strong>Share Hudl film to begin</strong><span>Pause on a clean pre-snap frame, freeze it, click the football, then press Ready.</span></div>
+      <div class="fa-mode-pill" id="modePill">IDLE</div>
+    </div>
+    <div class="fa-hint" id="stageHint">Setup is reused. You should not redraw the field or label every player on every play.</div>
+  </section>
+
+  <aside class="fa-sidebar">
+    <section class="fa-card">
+      <div class="fa-card-title">Session setup</div>
+      <label>Opponent<input id="opponentInput" placeholder="Opponent name"></label>
+      <div class="fa-two">
+        <label>Quarter<select id="quarterInput"><option value="1">1st</option><option value="2">2nd</option><option value="3">3rd</option><option value="4">4th</option><option value="OT">OT / Cutup</option></select></label>
+        <label>Q1 offense direction<select id="q1DirectionInput"><option value="ltr">Left to right</option><option value="rtl">Right to left</option></select></label>
+      </div>
+      <div class="fa-direction-card">
+        <span>Direction used for this play</span>
+        <strong id="effectiveDirection">Left to right</strong>
+        <button class="fa-btn fa-small" id="flipDirectionBtn">Flip this play</button>
+      </div>
+      <label>Film angle<select id="angleInput"><option>Sideline</option><option>Wide</option><option>End zone</option><option>Other</option></select></label>
+      <p class="fa-smalltext">Direction automatically flips each quarter. Use “Flip this play” for cutups or unusual film order.</p>
+    </section>
+
+    <section class="fa-card">
+      <div class="fa-row fa-spread"><div class="fa-card-title">Automatic pre-snap read</div><span class="fa-chip" id="analysisStatus">Waiting</span></div>
+      <div id="analysisResults" class="fa-analysis-results"><div class="fa-empty-list">Freeze a frame, mark the football, and press Ready.</div></div>
+      <div class="fa-confidence-note" id="confidenceNote">This is an experimental first-pass detector. Review low-confidence results.</div>
+    </section>
+
+    <section class="fa-card">
+      <div class="fa-card-title">Quick corrections</div>
+      <div class="fa-two">
+        <label>Formation<input id="formationInput" placeholder="Auto-filled"></label>
+        <label>Personnel<select id="personnelInput"><option value="">Unknown</option><option>10</option><option>11</option><option>12</option><option>13</option><option>20</option><option>21</option><option>22</option><option>Empty</option></select></label>
+      </div>
+      <div class="fa-two">
+        <label>Play type<select id="playTypeInput"><option value="">Choose later</option><option>Run</option><option>Pass</option><option>RPO</option><option>Screen</option></select></label>
+        <label>Direction<select id="playDirectionInput"><option value="">Unknown</option><option>Left</option><option>Middle</option><option>Right</option></select></label>
+      </div>
+      <label>Concept<input id="conceptInput" placeholder="Counter, Outside Zone, Bubble..."></label>
+      <label>Notes<textarea id="notesInput" rows="2" placeholder="Optional correction or alignment tell"></textarea></label>
+      <button class="fa-btn fa-good fa-full" id="savePlayBtn" disabled>Save & next play</button>
+    </section>
+  </aside>
+</main>
+
+<section class="fa-dataset">
+  <div class="fa-row fa-spread"><div><div class="fa-card-title">Saved film examples</div><p>Each play stores the ball anchor, detected player boxes, suggested formation/personnel, confidence, and your corrections.</p></div><div class="fa-row"><button class="fa-btn" id="exportJsonBtn">Export JSON</button><button class="fa-btn" id="exportCsvBtn">Export CSV</button><button class="fa-btn fa-danger" id="clearDatasetBtn">Clear</button></div></div>
+  <div class="fa-table-wrap"><table><thead><tr><th>#</th><th>Quarter</th><th>Direction</th><th>Formation</th><th>Personnel</th><th>Detection</th><th></th></tr></thead><tbody id="datasetBody"></tbody></table></div>
+</section>
+
+<script src="assets/film-analyst.js"></script>
+</body>
+</html>
