@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Camera Assist | Analyst Assist</title>
+  <link rel="stylesheet" href="assets/styles.css">
+  <link rel="stylesheet" href="assets/camera-assist.css">
+</head>
+<body class="camera-page">
+  <header class="camera-topbar">
+    <div>
+      <div class="eyebrow">ANALYST ASSIST</div>
+      <h1>Camera <span>Assist</span></h1>
+      <p>USB-first live video, supervised play drafts, voice correction, and one-tap confirmation.</p>
+    </div>
+    <div class="camera-top-actions">
+      <a class="btn" href="coach-console.html">Back to Coach Console</a>
+      <button class="btn" id="openSetupBtn">Pregame setup</button>
+      <button class="btn btn-primary" id="startCameraBtn">Start camera</button>
+    </div>
+  </header>
+
+  <section class="calibration-banner" id="calibrationBanner">
+    <div><span class="status-dot" id="calibrationDot"></span><strong id="calibrationTitle">Pregame setup required</strong><small id="calibrationSummary">Run the guided setup before trusting automatic observations.</small></div>
+    <button class="btn btn-sm" id="resumeSetupBtn">Start walkthrough</button>
+  </section>
+
+  <main class="camera-shell">
+    <section class="camera-stage card">
+      <div class="camera-toolbar">
+        <div class="camera-status"><span id="cameraDot" class="status-dot"></span><strong id="cameraStatus">Camera stopped</strong><span id="cameraFps">0 fps</span></div>
+        <div class="row">
+          <select id="cameraSelect" aria-label="Camera source"><option value="">Choose camera</option></select>
+          <button class="btn btn-sm" id="refreshCamerasBtn">Refresh cameras</button>
+          <button class="btn btn-sm" id="fullscreenBtn">Fullscreen video</button>
+        </div>
+      </div>
+
+      <div class="video-wrap" id="videoWrap">
+        <video id="cameraVideo" autoplay playsinline muted></video>
+        <canvas id="analysisCanvas" hidden></canvas>
+        <canvas id="calibrationOverlay" class="calibration-overlay"></canvas>
+        <div class="field-overlay" id="fieldOverlay">
+          <div class="yard-line y20">20</div><div class="yard-line y40">40</div><div class="yard-line y50">50</div><div class="yard-line y60">40</div><div class="yard-line y80">20</div>
+          <div class="hash-line hash-left"></div><div class="hash-line hash-right"></div>
+          <div class="roi" id="offenseRoi"><span>OFFENSE DETECTION AREA</span></div>
+        </div>
+        <div class="video-message" id="videoMessage">Connect the iPhone to the HP by USB, expose it as a webcam, then press Start camera.</div>
+        <div class="live-badge" id="recordingBadge">● RECORDING</div>
+        <div class="motion-meter"><span>Motion</span><div><i id="motionBar"></i></div><b id="motionValue">0%</b></div>
+      </div>
+
+      <div class="capture-controls">
+        <button class="capture-button" id="markSnapBtn"><span>MARK</span> SNAP<small>Spacebar</small></button>
+        <button class="capture-button secondary" id="endPlayBtn"><span>END</span> PLAY<small>Enter</small></button>
+        <button class="capture-button neutral" id="armAutoBtn"><span>AUTO</span> ARM<small>A</small></button>
+        <button class="capture-button danger" id="recordBtn"><span>VIDEO</span> RECORD<small>R</small></button>
+      </div>
+    </section>
+
+    <aside class="camera-side">
+      <section class="card next-call-card">
+        <div class="card-title">Current prediction</div>
+        <div id="predictionHero" class="prediction-empty">Open Coach Console once and load your opponent film. Camera Assist reads the same saved team data.</div>
+      </section>
+
+      <section class="card observation-card">
+        <div class="row spread"><div class="card-title">Camera observation</div><span class="confidence-chip" id="observationConfidence">NOT CALIBRATED</span></div>
+        <div class="observation-grid">
+          <label>Formation<select id="obsFormation"></select></label>
+          <label>Personnel<select id="obsPersonnel"><option>10</option><option selected>11</option><option>12</option><option>20</option><option>21</option><option>heavy</option><option>empty</option></select></label>
+          <label>Strength<select id="obsStrength"><option value="R">Right</option><option value="L">Left</option></select></label>
+          <label>Hash<select id="obsHash"><option value="mid">Middle</option><option value="L">Left</option><option value="R">Right</option></select></label>
+          <label>Tempo<select id="obsTempo"><option value="normal">Normal</option><option value="hurry">Hurry-up</option><option value="slow">Check-with-me</option></select></label>
+          <label>Star<select id="obsStar"><option value="unknown">Unknown</option><option value="on">On field</option><option value="off">Off field</option></select></label>
+        </div>
+        <button class="btn btn-sm btn-primary full" id="applyObservationBtn">Apply to prediction</button>
+      </section>
+
+      <section class="card draft-card" id="draftCard">
+        <div class="row spread"><div><div class="card-title">Previous-play draft</div><div class="small" id="draftTiming">Waiting for a play</div></div><span class="confidence-chip" id="draftConfidence">—</span></div>
+        <div class="draft-grid">
+          <label>Actual concept<select id="draftConcept"></select></label>
+          <label>Play family<select id="draftFamily"><option>Run</option><option>Pass</option><option>RPO</option><option>Screen</option></select></label>
+          <label>Direction<select id="draftDirection"><option value="">—</option><option value="L">Left</option><option value="M">Middle</option><option value="R">Right</option></select></label>
+          <label>Gap<select id="draftGap"><option value="">—</option><option>A</option><option>B</option><option>C</option><option>D</option><option value="edge">Edge</option></select></label>
+          <label>Result<select id="draftResult"><option value="">—</option><option value="neg">Neg/TFL</option><option value="s">0-3</option><option value="m">4-6</option><option value="l">7-10</option><option value="xp">11+</option><option value="td">TD</option></select></label>
+          <label>Recognition<select id="draftSource"><option value="camera-assisted">Camera assisted</option><option value="voice">Voice</option><option value="manual">Manual</option></select></label>
+        </div>
+        <div class="draft-actions">
+          <button class="btn" id="discardDraftBtn">Discard</button>
+          <button class="btn" id="speakDraftBtn">Voice command</button>
+          <button class="btn btn-good" id="confirmDraftBtn">Confirm & log</button>
+        </div>
+        <div class="voice-line" id="voiceLine">Say: “Analyst, counter right, gain six.”</div>
+      </section>
+
+      <section class="card situation-card">
+        <div class="card-title">Situation</div>
+        <div class="situation-row">
+          <label>Q<select id="sitQuarter"><option>1</option><option>2</option><option>3</option><option>4</option><option>OT</option></select></label>
+          <label>Down<select id="sitDown"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></label>
+          <label>Distance<select id="sitDistance"><option value="short">1-3</option><option value="normal">4-6</option><option value="long">7-10</option><option value="xlong">11+</option></select></label>
+          <label>Zone<select id="sitZone"><option value="own">Own</option><option value="mid">Mid</option><option value="hrz">High RZ</option><option value="rz">RZ</option><option value="gl">Goal</option></select></label>
+        </div>
+        <div class="quick-situations">
+          <button data-preset="first10">1st & 10</button><button data-preset="secondLong">2nd & Long</button><button data-preset="thirdShort">3rd & Short</button><button data-preset="redzone">Red Zone</button><button data-preset="goal">Goal Line</button>
+        </div>
+      </section>
+
+      <section class="card trust-card">
+        <div class="row spread"><div class="card-title">Trust controls</div><span class="confidence-chip" id="trustModeChip">SUPERVISED</span></div>
+        <div class="trust-grid">
+          <div><strong>90%+</strong><span>May auto-apply</span></div>
+          <div><strong>70–89%</strong><span>Highlight for review</span></div>
+          <div><strong>50–69%</strong><span>Require confirmation</span></div>
+          <div><strong>&lt;50%</strong><span>Do not fill</span></div>
+        </div>
+        <div class="note" id="trustNote">Automatic recognition remains locked until pregame calibration is complete.</div>
+      </section>
+
+      <section class="card settings-card">
+        <details>
+          <summary>Camera and automation settings</summary>
+          <div class="settings-grid">
+            <label>Motion sensitivity<input id="motionSensitivity" type="range" min="2" max="40" value="14"><span id="motionSensitivityValue">14</span></label>
+            <label>Auto end delay<input id="autoEndDelay" type="range" min="1" max="8" value="3"><span id="autoEndDelayValue">3 sec</span></label>
+            <label><input id="autoCreateDraft" type="checkbox" checked> Create draft when motion settles</label>
+            <label><input id="autoApplyObservation" type="checkbox"> Auto-apply confident observations</label>
+            <label><input id="keepClips" type="checkbox" checked> Keep local video clips</label>
+          </div>
+          <div class="note">No video leaves this device. Browser camera access requires HTTPS or localhost. Exact football recognition will use the optional model hook in <code>assets/camera-model.js</code>.</div>
+        </details>
+      </section>
+    </aside>
+  </main>
+
+  <section class="card session-log">
+    <div class="row spread"><div><div class="card-title">Camera Assist session</div><div class="small">Confirmed plays write directly into the same <code>dpp_v4</code> live log used by Coach Console.</div></div><div class="row"><button class="btn btn-sm" id="downloadClipsBtn">Download last clip</button><button class="btn btn-sm" id="clearSessionBtn">Clear session notes</button></div></div>
+    <div id="sessionEvents" class="event-list"></div>
+  </section>
+
+
+  <div class="setup-modal" id="setupModal" aria-hidden="true">
+    <div class="setup-dialog" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
+      <header class="setup-header">
+        <div><div class="eyebrow">PREGAME CAMERA WALKTHROUGH</div><h2 id="setupTitle">Camera calibration</h2><p id="setupSubtitle">Complete each step in order. Your choices stay on this device.</p></div>
+        <button class="setup-close" id="closeSetupBtn" aria-label="Close setup">×</button>
+      </header>
+      <div class="setup-progress"><i id="setupProgressBar"></i></div>
+      <div class="setup-body">
+        <aside class="setup-steps" id="setupSteps"></aside>
+        <section class="setup-workspace">
+          <div class="setup-instruction"><span id="setupStepNumber">Step 1</span><h3 id="setupStepTitle">Connect the camera</h3><p id="setupStepHelp"></p></div>
+          <div id="setupStepContent"></div>
+          <div class="setup-feedback" id="setupFeedback"></div>
+        </section>
+      </div>
+      <footer class="setup-footer"><button class="btn" id="setupBackBtn">Back</button><button class="btn" id="resetSetupBtn">Reset setup</button><div class="spacer"></div><button class="btn btn-primary" id="setupNextBtn">Continue</button></footer>
+    </div>
+  </div>
+
+  <script src="assets/camera-model.js"></script>
+  <script src="assets/camera-calibration.js"></script>
+  <script src="assets/camera-assist.js"></script>
+</body>
+</html>
