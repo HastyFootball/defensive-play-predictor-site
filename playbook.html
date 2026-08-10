@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Playbook Builder | Analyst Assist</title>
+  <link rel="stylesheet" href="assets/playbook-builder.css">
+</head>
+<body>
+  <header class="pb-topbar">
+    <div class="pb-brand"><span class="pb-mark">AA</span><div><strong>Analyst Assist</strong><span>Playbook Builder</span></div></div>
+    <nav class="pb-nav">
+      <a href="coach-console.html">Coach Console</a>
+      <a href="film-analyst.html">Film Intelligence</a>
+      <a class="active" href="playbook.html">Playbook</a>
+      <button type="button" onclick="signOut()">Sign out</button>
+    </nav>
+    <div class="pb-sync-wrap"><div class="pb-sync" id="pbSync" data-mode="warn">CHECKING CLOUD…</div><div class="pb-save-detail" id="pbSaveDetail">Connecting to Supabase</div></div>
+  </header>
+
+  <main class="pb-shell">
+    <section class="pb-toolbar">
+      <div class="pb-toolbar-group">
+        <button class="pb-btn primary" id="newPlayBtn">New</button>
+        <button class="pb-btn" id="savePlayBtn">Save</button>
+        <button class="pb-btn" id="duplicatePlayBtn">Duplicate</button>
+        <button class="pb-btn" id="flipPlayBtn">Flip ↔</button>
+        <button class="pb-btn" id="undoBtn">Undo</button>
+        <button class="pb-btn" id="redoBtn">Redo</button>
+      </div>
+      <div class="pb-toolbar-group">
+        <button class="pb-btn" id="printCurrentBtn">Print current</button>
+        <select class="pb-print-mode" id="printMode" title="Print style"><option value="bw">Pure B&amp;W</option><option value="gray">Grayscale</option><option value="color">Color</option></select>
+        <button class="pb-btn" id="printSetBtn">Print practice set</button>
+        <button class="pb-btn" id="exportBtn">Export playbook</button>
+        <label class="pb-btn file-btn">Import playbook<input id="importFile" type="file" accept="application/json,.json"></label>
+      </div>
+    </section>
+    <div class="cloud-note"><b>Cloud-first saving:</b> when the badge says <b>SAVED TO CLOUD</b>, the play is stored in Supabase and can load on another signed-in device. Browser storage is kept only as an offline cache.</div>
+    <section class="pb-quick-edit" aria-label="Quick play editing">
+      <div class="quick-copy"><b>Quick Edit</b><span>Default mode is drag-and-drop. Pick a preset, then move only what you need.</span></div>
+      <div class="quick-actions">
+        <button class="pb-btn compact" id="selectOffenseBtn">Select offense</button>
+        <button class="pb-btn compact" id="selectDefenseBtn">Select defense</button>
+        <button class="pb-btn compact" id="resetOffenseBtn">Reset offense</button>
+        <button class="pb-btn compact" id="resetDefenseBtn">Reset defense</button>
+        <button class="pb-btn compact subtle" id="rotateLegacyBtn" title="Use this only for plays created before the vertical-field preset fix">Rotate old layout 90°</button>
+      </div>
+    </section>
+
+    <section class="pb-layout">
+      <aside class="pb-panel pb-library-panel">
+        <div class="pb-panel-head">
+          <div>
+            <h2>Play Library</h2>
+            <p>Opponent looks, defensive calls, and matchup plans.</p>
+          </div>
+          <button class="icon-btn" id="collapseLibraryBtn" title="Collapse">‹</button>
+        </div>
+        <div class="pb-filter-row">
+          <input id="librarySearch" placeholder="Search plays or tags">
+          <select id="libraryFilter">
+            <option value="all">All</option>
+            <option value="offense">Offense</option>
+            <option value="defense">Defense</option>
+            <option value="matchup">Matchup</option>
+          </select>
+        </div>
+        <div class="pb-library" id="playLibrary"></div>
+      </aside>
+
+      <section class="pb-workspace">
+        <div class="pb-meta-card">
+          <div class="pb-meta-grid">
+            <label>Play name<input id="playName" placeholder="e.g. Bunch Counter vs 4-2-5"></label>
+            <label>Type<select id="playKind"><option value="matchup">Matchup Plan</option><option value="offense">Offensive Concept</option><option value="defense">Defensive Call</option></select></label>
+            <label>Opponent / package<input id="playOpponent" placeholder="Optional"></label>
+            <label>Tags<input id="playTags" placeholder="3rd down, bunch, red zone"></label>
+          </div>
+          <div class="pb-matchup-grid" id="matchupFields">
+            <label>Opponent concept<input id="opponentConcept" placeholder="e.g. Counter from Bunch"></label>
+            <label>Our defensive call<input id="ourCall" placeholder="e.g. Under Fire 3"></label>
+          </div>
+        </div>
+
+        <div class="pb-builder-grid">
+          <div class="pb-toolbox">
+            <div class="tool-section">
+              <span class="tool-title">Edit</span>
+              <button class="tool active" data-tool="select">Select / Move</button>
+              <button class="tool" data-tool="erase">Erase</button>
+            </div>
+            <div class="tool-section">
+              <span class="tool-title">Players</span>
+              <button class="tool offense" data-tool="addOffense">+ Offense</button>
+              <button class="tool defense" data-tool="addDefense">+ Defense</button>
+            </div>
+            <div class="tool-section">
+              <span class="tool-title">Draw</span>
+              <button class="tool" data-tool="route">Route →</button>
+              <button class="tool" data-tool="motion">Motion ⇢</button>
+              <button class="tool" data-tool="block">Block ━</button>
+              <button class="tool" data-tool="stunt">Blitz / Stunt ↗</button>
+              <button class="tool" data-tool="zone">Zone □</button>
+              <button class="tool" data-tool="text">Text T</button>
+            </div>
+            <div class="tool-section">
+              <span class="tool-title">Offense templates</span>
+              <button class="template" data-template="2x2">2x2</button>
+              <button class="template" data-template="trips">Trips Right</button>
+              <button class="template" data-template="bunch">Bunch Right</button>
+              <button class="template" data-template="empty">Empty</button>
+              <button class="template" data-template="ace">Ace</button>
+            </div>
+            <div class="tool-section">
+              <span class="tool-title">Defense templates</span>
+              <button class="template" data-template="425">4-2-5</button>
+              <button class="template" data-template="43">4-3</button>
+              <button class="template" data-template="33">3-3 Stack</button>
+              <button class="template" data-template="odd">Odd</button>
+            </div>
+          </div>
+
+          <div class="field-wrap">
+            <div class="field-topline"><span id="currentToolLabel">Select / Move</span><span><b>Default:</b> click + drag players. Shift-click selects multiple.</span></div>
+            <div class="football-field" id="footballField" tabindex="0">
+              <div class="endzone top">DEFENSE</div><div class="endzone bottom">OFFENSE</div>
+              <div class="orientation-label defense-side">DEFENSE</div><div class="orientation-label offense-side">OFFENSE ↑ ATTACKING</div><div class="los-label">LINE OF SCRIMMAGE</div>
+              <div class="yard-lines" aria-hidden="true"></div>
+              <svg class="drawing-layer" id="drawingLayer" viewBox="0 0 560 1000" preserveAspectRatio="none">
+                <defs>
+                  <marker id="arrowWhite" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"></path></marker>
+                  <marker id="arrowGold" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"></path></marker>
+                </defs>
+                <g id="savedShapes"></g>
+                <g id="draftShape"></g>
+              </svg>
+              <div class="player-layer" id="playerLayer"></div>
+            </div>
+            <div class="field-help">Tip: every saved play stays editable. Click it in the Play Library, then drag players, change assignments, or redraw routes/stunts. Use Matchup Plan when you want the opponent look and your defensive answer on the same card. Shift-click players to multi-select and move a unit together. Routes, stunts, zones, and player symbols are designed to remain readable in black-and-white printing.</div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="pb-panel pb-inspector-panel">
+        <div class="pb-panel-head"><div><h2>Install Details</h2><p>Responsibilities and coaching points.</p></div></div>
+        <div class="inspector-section">
+          <h3>Selected player</h3>
+          <div id="noPlayerSelected" class="empty-copy">Select a player on the field to edit the label and assignment.</div>
+          <div id="playerInspector" class="hidden">
+            <label>Label<input id="playerLabel" maxlength="8"></label>
+            <label>Position / role<input id="playerRole" placeholder="e.g. Mike, X, 3-tech"></label>
+            <label>Responsibility<textarea id="playerAssignment" rows="5" placeholder="Fit, coverage, stunt responsibility, coaching key..."></textarea></label>
+            <label>Player symbol<select id="playerSymbol"><option value="auto">Automatic</option><option value="circle">Circle</option><option value="square">Square</option><option value="x">X / OL</option><option value="triangle">Triangle</option></select></label>
+            <button class="pb-btn danger" id="deletePlayerBtn">Delete player</button>
+          </div>
+        </div>
+        <div class="inspector-section">
+          <h3>Selected drawing</h3>
+          <div id="noShapeSelected" class="empty-copy">Select a route, stunt, block, motion, or zone to change its print-safe style.</div>
+          <div id="shapeInspector" class="hidden">
+            <label>Line style<select id="shapeLineStyle"><option value="solid">Solid</option><option value="dashed">Dashed</option><option value="dotted">Dotted</option></select></label>
+            <label>Thickness<select id="shapeWidth"><option value="3">Thin</option><option value="5">Medium</option><option value="8">Thick</option></select></label>
+            <label>Endpoint<select id="shapeEndpoint"><option value="arrow">Arrow</option><option value="bar">Blocking bar</option><option value="dot">Assignment dot</option><option value="none">None</option></select></label>
+            <label id="zonePatternWrap">Zone pattern<select id="zonePattern"><option value="diagonal">Diagonal hatch</option><option value="cross">Crosshatch</option><option value="dots">Dots</option><option value="horizontal">Horizontal lines</option></select></label>
+            <button class="pb-btn danger" id="deleteShapeBtn">Delete drawing</button>
+          </div>
+        </div>
+        <div class="inspector-section">
+          <h3>Position responsibilities</h3>
+          <div id="responsibilityList" class="responsibility-list"></div>
+        </div>
+        <div class="inspector-section">
+          <h3>Coaching points</h3>
+          <textarea id="coachingPoints" rows="6" placeholder="Primary keys, checks, alerts, adjustments, practice emphasis..."></textarea>
+        </div>
+        <div class="inspector-section">
+          <h3>Practice set</h3>
+          <label class="check-row"><input id="practiceSetToggle" type="checkbox"> Include this card in the current practice print set</label>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <div class="toast" id="toast"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/config.js"></script>
+  <script src="assets/supabase-app.js"></script>
+  <script src="assets/playbook-builder.js"></script>
+  <script>requireAuth();</script>
+</body>
+</html>
